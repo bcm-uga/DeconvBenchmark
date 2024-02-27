@@ -7,7 +7,7 @@ METHODS_RNA_UNSUP=["ICA", "NMF", "PREDE", "debCAM", "CDSeq"]
 METHODS_MET_SUP=["rlr", "CIBERSORT", "houseman", "InstaPrism", "nnls"]
 METHODS_MET_UNSUP=["RefFreeEWAS", "ICA", "EDec", "NMF", "debCAM", "MeDeCom"]
 FS=["","toast","hvf"]
-SIMS=['1','2','3']
+SIMS=['01','02','03']
 DATE='231027'
 
 rule all_rna_sup:

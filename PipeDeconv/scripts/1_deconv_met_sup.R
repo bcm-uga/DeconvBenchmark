@@ -183,6 +183,6 @@ pred_file = args[8]
 time_file = args[9]
 
 SB_deconv_lot_method_sim(lot, block, method, method_class,
-                        as.numeric(strsplit(sim,"")[[1]][2]), date, input_path,
+                         ifelse(sim=="10",10,as.numeric(strsplit(sim,"")[[1]][2])), date, input_path,
                         pred_file, time_file,
                         fs)

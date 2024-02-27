@@ -40,7 +40,7 @@ rule deconv_rna_sup:
         file_time = "res/timing/rna/sup/{date}/{date}_{lot}_timing{fs}_{method}_sim{sim}.rds",
     log: stdout="logs/rna_sup_{date}_{lot}_{method}_{sim}.log", stderr="logs/rna_sup_{date}_{lot}_{method}_{sim}.log"
     shell:
-        "singularity exec ../container.sif Rscript {input.script} {params.lot} 'rna' {params.method} 'sup' {params.sim} {params.date} {output.file_res} {output.file_time} > {log.stdout} 2> {log.stderr}"
+        "singularity exec ../container.sif Rscript {input.script} {params.lot} 'rna' {params.method} 'sup' {params.sim} {params.date} {params.fs} {output.file_res} {output.file_time} > {log.stdout} 2> {log.stderr}"
 
 rule deconv_rna_unsup:
     input:
@@ -56,7 +56,7 @@ rule deconv_rna_unsup:
         file_time = "res/timing/rna/unsup/{date}/{date}_{lot}_timing{fs}_{method}_sim{sim}.rds",
     log: stdout="logs/rna_unsup_{date}_{lot}_{method}_{sim}.log", stderr="logs/rna_unsup_{date}_{lot}_{method}_{sim}.log"
     shell:
-        "singularity exec ../container.sif Rscript {input.script} {params.lot} 'rna' {params.method} 'unsup' {params.sim} {params.date} {output.file_res} {output.file_time} > {log.stdout} 2> {log.stderr}"
+        "singularity exec ../container.sif Rscript {input.script} {params.lot} 'rna' {params.method} 'unsup' {params.sim} {params.date} {params.fs} {output.file_res} {output.file_time} > {log.stdout} 2> {log.stderr}"
 
 rule deconv_met_sup:
     input:
@@ -72,7 +72,7 @@ rule deconv_met_sup:
         file_time = "res/timing/met/sup/{date}/{date}_{lot}_timing{fs}_{method}_sim{sim}.rds",
     log: stdout="logs/met_sup_{date}_{lot}_{method}_{sim}.log", stderr="logs/met_sup_{date}_{lot}_{method}_{sim}.log"
     shell:
-        "singularity exec ../container.sif Rscript {input.script} {params.lot} 'met' {params.method} 'sup' {params.sim} {params.date} {output.file_res} {output.file_time} > {log.stdout} 2> {log.stderr}"
+        "singularity exec ../container.sif Rscript {input.script} {params.lot} 'met' {params.method} 'sup' {params.sim} {params.date} {params.fs} {output.file_res} {output.file_time} > {log.stdout} 2> {log.stderr}"
 
 rule deconv_met_unsup:
     input:
@@ -88,4 +88,4 @@ rule deconv_met_unsup:
         file_time = "res/timing/met/unsup/{date}/{date}_{lot}_timing{fs}_{method}_sim{sim}.rds",
     log: stdout="logs/met_unsup_{date}_{lot}_{method}_{sim}.log", stderr="logs/met_unsup_{date}_{lot}_{method}_{sim}.log"
     shell:
-        "singularity exec ../container.sif Rscript {input.script} {params.lot} 'met' {params.method} 'unsup' {params.sim} {params.date} {output.file_res} {output.file_time} > {log.stdout} 2> {log.stderr}"
+        "singularity exec ../container.sif Rscript {input.script} {params.lot} 'met' {params.method} 'unsup' {params.sim} {params.date} {params.fs} {output.file_res} {output.file_time} > {log.stdout} 2> {log.stderr}"

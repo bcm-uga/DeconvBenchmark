@@ -1,1 +1,5 @@
-# DeconvBenchmark
+# Deconvolution pipeline
+
+## Inputs
+
+## Outputs

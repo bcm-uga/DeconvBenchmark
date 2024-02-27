@@ -1,13 +1,13 @@
 # snakemake --cluster "asking for ressources" --latency-wait 60 --cores 32 --jobs 50
 
-LOTS_RNA=['Cobos','dBREAST','dPANCREAS','Hoek','lot1']
-LOTS_MET=['dBREAST','dPANCREAS','He','lot1']
+LOTS_RNA=['BrCL1','BrCL2']
+LOTS_MET=['BrCL1','LuCL']
 METHODS_RNA_SUP=["DeconRNASeq", "nnls", "ols", "svr", "CIBERSORT", "elastic_net", "rlr", "WISP", "InstaPrism", "fardeep", "fardeep_sto"]
 METHODS_RNA_UNSUP=["ICA", "NMF", "PREDE", "debCAM", "CDSeq"]
 METHODS_MET_SUP=["rlr", "CIBERSORT", "houseman", "InstaPrism", "nnls"]
 METHODS_MET_UNSUP=["RefFreeEWAS", "ICA", "EDec", "NMF", "debCAM", "MeDeCom"]
 FS=["","toast","hvf"]
-SIMS=['01','02','03','04','05','06','07','08','09','10']
+SIMS=['1','2','3']
 DATE='231027'
 
 rule all_rna_sup:

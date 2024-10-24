@@ -1,5 +1,0 @@
-# Deconvolution pipeline
-
-## Inputs
-
-## Outputs

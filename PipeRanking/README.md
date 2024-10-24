@@ -1,5 +1,0 @@
-# Ranking pipeline
-
-## Inputs
-
-## Outputs

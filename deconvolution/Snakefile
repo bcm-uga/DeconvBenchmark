@@ -12,10 +12,10 @@ DATE='241025'
 
 rule all:
     input:
-        expand("results/prediction/dnam/sup/"+DATE+"_{data}_Apred{fs}_{method}_sim{sim}.rds", data=DATA_DNAm, method=METHOD_DNAm_SUP, sim=REPLICATE, fs=FS),
-        expand("results/prediction/dnam/unsup/"+DATE+"_{data}_Apred{fs}_{method}_sim{sim}.rds", data=DATA_DNAm, method=METHOD_DNAm_UNSUP, sim=REPLICATE, fs=FS),
-        expand("results/prediction/rna/sup/"+DATE+"_{data}_Apred{fs}_{method}_sim{sim}.rds", data=DATA_RNA, method=METHOD_RNA_SUP, sim=REPLICATE, fs=FS),
-        expand("results/prediction/rna/unsup/"+DATE+"_{data}_Apred{fs}_{method}_sim{sim}.rds", data=DATA_RNA, method=METHOD_RNA_UNSUP, sim=REPLICATE, fs=FS)
+        expand("results/prediction/dnam/sup/"+DATE+"_{data}_Apred_{fs}_{method}_sim{sim}.rds", data=DATA_DNAm, method=METHOD_DNAm_SUP, sim=REPLICATE, fs=FS),
+        expand("results/prediction/dnam/unsup/"+DATE+"_{data}_Apred_{fs}_{method}_sim{sim}.rds", data=DATA_DNAm, method=METHOD_DNAm_UNSUP, sim=REPLICATE, fs=FS),
+        expand("results/prediction/rna/sup/"+DATE+"_{data}_Apred_{fs}_{method}_sim{sim}.rds", data=DATA_RNA, method=METHOD_RNA_SUP, sim=REPLICATE, fs=FS),
+        expand("results/prediction/rna/unsup/"+DATE+"_{data}_Apred_{fs}_{method}_sim{sim}.rds", data=DATA_RNA, method=METHOD_RNA_UNSUP, sim=REPLICATE, fs=FS)
 
 rule deconv_dnam_sup:
     input:
@@ -27,8 +27,8 @@ rule deconv_dnam_sup:
         sim = '{sim}',
         date = '{date}'
     output:
-        file_res = "results/prediction/dnam/sup/{date}_{data}_Apred{fs}_{method}_sim{sim}.rds",
-        file_time = "results/timing/dnam/sup/{date}_{data}_timing{fs}_{method}_sim{sim}.rds"
+        file_res = "results/prediction/dnam/sup/{date}_{data}_Apred_{fs}_{method}_sim{sim}.rds",
+        file_time = "results/timing/dnam/sup/{date}_{data}_timing_{fs}_{method}_sim{sim}.rds"
     threads: 32
     log: stdout="logs/dnam_sup_{date}_{data}_{method}_{sim}_{fs}.log", stderr="logs/dnam_sup_{date}_{data}_{method}_{sim}_{fs}.log"
     shell:
@@ -44,8 +44,8 @@ rule deconv_dnam_unsup:
         sim = '{sim}',
         date = '{date}'
     output:
-        file_res = "results/prediction/dnam/unsup/{date}_{data}_Apred{fs}_{method}_sim{sim}.rds",
-        file_time = "results/timing/dnam/unsup/{date}_{data}_timing{fs}_{method}_sim{sim}.rds"
+        file_res = "results/prediction/dnam/unsup/{date}_{data}_Apred_{fs}_{method}_sim{sim}.rds",
+        file_time = "results/timing/dnam/unsup/{date}_{data}_timing_{fs}_{method}_sim{sim}.rds"
     threads: 32
     log: stdout="logs/dnam_unsup_{date}_{data}_{method}_{sim}_{fs}.log", stderr="logs/dnam_unsup_{date}_{data}_{method}_{sim}_{fs}.log"
     shell:
@@ -61,8 +61,8 @@ rule deconv_rna_sup:
         sim = '{sim}',
         date = '{date}'
     output:
-        file_res = "results/prediction/rna/sup/{date}_{data}_Apred{fs}_{method}_sim{sim}.rds",
-        file_time = "results/timing/rna/sup/{date}_{data}_timing{fs}_{method}_sim{sim}.rds"
+        file_res = "results/prediction/rna/sup/{date}_{data}_Apred_{fs}_{method}_sim{sim}.rds",
+        file_time = "results/timing/rna/sup/{date}_{data}_timing_{fs}_{method}_sim{sim}.rds"
     threads: 32
     log: stdout="logs/rna_sup_{date}_{data}_{method}_{sim}_{fs}.log", stderr="logs/rna_sup_{date}_{data}_{method}_{sim}_{fs}.log"
     shell:
@@ -78,8 +78,8 @@ rule deconv_rna_unsup:
         sim = '{sim}',
         date = '{date}'
     output:
-        file_res = "results/prediction/rna/unsup/{date}_{data}_Apred{fs}_{method}_sim{sim}.rds",
-        file_time = "results/timing/rna/unsup/{date}_{data}_timing{fs}_{method}_sim{sim}.rds"
+        file_res = "results/prediction/rna/unsup/{date}_{data}_Apred_{fs}_{method}_sim{sim}.rds",
+        file_time = "results/timing/rna/unsup/{date}_{data}_timing_{fs}_{method}_sim{sim}.rds"
     threads: 32
     log: stdout="logs/rna_unsup_{date}_{data}_{method}_{sim}_{fs}.log", stderr="logs/rna_unsup_{date}_{data}_{method}_{sim}_{fs}.log"
     shell:

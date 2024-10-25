@@ -139,12 +139,12 @@ do_run_unsup_deconvolution = function(method, dat, Atrue, option = c("Amat", "Tm
               time_elapsed = time_elapsed))
 }
 
-SB_deconv_lot_method_sim <- function(lot, omic, method, method_class, sim, date, input_path, pred_file, time_file, fs) {
+SB_deconv_data_method_sim <- function(data, omic, method, method_class, sim, date, input_path, pred_file, time_file, fs) {
   do_featselec <- ifelse(fs=="none",F,T)
   input_path <- paste0(input_path, omic, "/")
   # read files
-  T_ref <- as.data.frame(readRDS(paste0(input_path, list.files(input_path, pattern = paste0(date, "_", lot, "_T_", omic, "_ref.rds")))))
-  sim_files <- sort(list.files(input_path, pattern = paste0(date, "_", lot, "_sim")))
+  T_ref <- as.data.frame(readRDS(paste0(input_path, list.files(input_path, pattern = paste0(date, "_", data, "_T_", omic, "_ref.rds")))))
+  sim_files <- sort(list.files(input_path, pattern = paste0(date, "_", data, "_sim")))
   # for replicate sim
   sim_file = sim_files[sim]
   sim <- strsplit(strsplit(sim_file, ".rds")[[1]], "_sim")[[1]][[2]]
@@ -153,7 +153,7 @@ SB_deconv_lot_method_sim <- function(lot, omic, method, method_class, sim, date,
   ref_profiles <- T_ref
   if (do_featselec) {
     # proceed to feature selection
-    toast_res <- featselec_toast(dat, featselec_K[[lot]])
+    toast_res <- featselec_toast(dat, featselec_K[[data]])
     dat <- dat[toast_res[[fs]],]
     ref_profiles <- ref_profiles[toast_res[[fs]],]
   }
@@ -170,7 +170,7 @@ SB_deconv_lot_method_sim <- function(lot, omic, method, method_class, sim, date,
 # Deconvolution per dataset per method per replicate
 #####
 args <- commandArgs(trailingOnly = TRUE)
-lot = args[1]
+data = args[1]
 omic = args[2]
 method = args[3]
 method_class = args[4]
@@ -180,6 +180,6 @@ fs = args[7]
 pred_file = args[8]
 time_file = args[9]
 
-SB_deconv_lot_method_sim(lot, omic, method, method_class,
+SB_deconv_data_method_sim(data, omic, method, method_class,
                          ifelse(sim=="10",10,as.numeric(strsplit(sim,"")[[1]][2])),
                          date, input_path, pred_file, time_file, fs)

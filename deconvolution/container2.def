@@ -1,0 +1,40 @@
+BootStrap: debootstrap
+OSVersion: jammy
+MirrorURL: http://archive.ubuntu.com/ubuntu/
+
+%environment
+  export LD_LIBRARY_PATH=/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/amd64/server:$LD_LIBRARY_PATH
+  export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+
+%post
+  sed -i 's/main/main restricted universe/g' /etc/apt/sources.list
+  apt-get update && apt-get install -y openjdk-8-jdk
+
+  # Install R stuff
+  apt-get install -y --no-install-recommends software-properties-common dirmngr
+  apt-get install -y wget language-pack-fr
+  wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
+  add-apt-repository -y "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
+  apt-get install -y r-base r-base-dev
+
+  # Install misc
+  apt-get install -y libfreetype6-dev libfribidi-dev libharfbuzz-dev git libxml2-dev libfontconfig1-dev libgit2-dev pandoc libcurl4-openssl-dev libtiff-dev libfftw3-dev libcairo2-dev libudunits2-dev libgdal-dev cmake
+  apt-get clean
+
+  # Install required R packages
+  R -e 'install.packages("BiocManager")'
+  R -e 'BiocManager::install(c("Biobase", "DeconRNASeq", "DESeq2", "EpiDISH", "fgsea", "granulator", "mixOmics", "multtest", "preprocessCore", "RnBeads", "TOAST", "WGCNA"))'
+
+  R -e 'install.packages(c("anndata", "clue", "ComICS", "dplyr", "e1071", "fastICA", "ggplot2", "ggpubr", "ggrepel", "glmnet", "gtools", "MASS", "metap", "NMF", "quadprog", "pbapply", "poolr", "pracma", "RColorBrewer", "reshape2", "see", "tictoc", "restriktor", "limSolve", "bigstatsr", "R.utils", "FARDEEP", "dynutils"))'
+
+  R -e 'install.packages("devtools")'
+  R -e 'devtools::install_version("RefFreeEWAS", version = "2.2")'
+  R -e 'devtools::install_github(c("bcm-uga/gedepir", "BRL-BCM/EDec", "Danko-Lab/BayesPrism/BayesPrism", "Hanyuz1996/EMeth", "humengying0907/InstaPrism", "lutsik/MeDeCom", "UrszulaCzerwinska/DeconICA", "Xiaoqizheng/PREDE", "kkang7/CDSeq_R_Package", "xuranw/MuSiC", "Hanyuz1996/EMeth"))'
+
+  # Install Python stuff
+  apt-get install -y python3-pip
+
+  pip3 install -U pip
+  pip3 install geomloss lightning numpy rds2py rpy2 torch tensorboard
+
+  # To install debCAM, run "apptainer exec --bind /bettik/PROJECTS/pr-epimed/amblaeli/projects:/bettik/PROJECTS/pr-epimed/amblaeli/projects container2.sif R CMD javareconf -e" then open R to install manually rJava (CRAN) and debCAM (BiocManager)

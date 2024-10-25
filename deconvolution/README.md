@@ -1,7 +1,7 @@
 This folder contains 
 - a folder scripts/ with the R scripts for the deconvolution in each setting (class/omic),
 - the Snakefile: this file should be adapted in order to do deconvolution on in vitro/vivo data, or to run the pipeline with new methods,
-- the definition file for the apptainer container, along with the directions to create the container from the .def file. The definition file can be modified to test new methods.
+- the definition file for the apptainer container, along with the directions to create the container from the .def file (container.md). The definition file can be updated to test new methods by adding necessary packages.
 
 In case the user wants to add new datasets, the following parts of the deconvolution scripts need to be modified:
 - for the supervised deconvolution with InstaPrism, the function "prism.states" should be modified to define variable types (in our case tumor types) : Sections ##Define variable types and ## Deaggregate variable types,

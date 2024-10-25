@@ -296,8 +296,8 @@ SB_deconv_data_method_sim <- function(data, omic, method, method_class, sim, dat
   D <- data_tot[[paste0("D_", omic, "_sim")]]
   if (do_featselec) {
     # proceed to feature selection
-    toast_res <- featselec_toast(dat, featselec_K[[data]])
-    dat <- dat[toast_res[[fs]],]
+    toast_res <- featselec_toast(D, featselec_K[[data]])
+    D <- D[toast_res[[fs]],]
     ref_profiles <- ref_profiles[toast_res[[fs]],]
   }
   # run deconvolution

@@ -141,25 +141,27 @@ do_run_unsup_deconvolution = function(method, dat, Atrue, option = c("Amat", "Tm
 
 SB_deconv_data_method_sim <- function(data, omic, method, method_class, sim, date, input_path, pred_file, time_file, fs) {
   do_featselec <- ifelse(fs=="none",F,T)
+  input_path_ref <- paste0(input_path,"../references")
   input_path <- paste0(input_path, omic, "/")
   # read files
-  T_ref <- as.data.frame(readRDS(paste0(input_path, list.files(input_path, pattern = paste0(date, "_", data, "_T_", omic, "_ref.rds")))))
+  list_files = list.files(input_path_ref, pattern = paste0(data), full.names = T)
+  if (length(list_files)>1) {list_files = grep(omic,list_files,value = T)}
+  ref_profiles <- as.data.frame(readRDS(list_files))
   sim_files <- sort(list.files(input_path, pattern = paste0(date, "_", data, "_sim")))
   # for replicate sim
   sim_file = sim_files[sim]
   sim <- strsplit(strsplit(sim_file, ".rds")[[1]], "_sim")[[1]][[2]]
-  data <- readRDS(paste0(input_path, sim_file))
-  dat <- data[[paste0("D_", omic, "_sim")]]
-  ref_profiles <- T_ref
+  data_tot <- readRDS(paste0(input_path, sim_file))
+  D <- data_tot[[paste0("D_", omic, "_sim")]]
   if (do_featselec) {
     # proceed to feature selection
-    toast_res <- featselec_toast(dat, featselec_K[[data]])
-    dat <- dat[toast_res[[fs]],]
+    toast_res <- featselec_toast(D, featselec_K[[data]])
+    D <- D[toast_res[[fs]],]
     ref_profiles <- ref_profiles[toast_res[[fs]],]
   }
   # run deconvolution
-  Atrue <- data$A_ref
-  deconv_res <- do_run_unsup_deconvolution(method, dat, "Amat", Atrue = Atrue)
+  Atrue <- data_tot$A_ref
+  deconv_res <- do_run_unsup_deconvolution(method, D, Atrue, "Amat",)
   A_pred <- deconv_res$res
   timing <- deconv_res$time_elapsed
   saveRDS(A_pred, pred_file)

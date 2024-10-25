@@ -1,9 +1,25 @@
 set.seed(1)
 
-# Functions
+#####
+# Libraries
+#####
 library(EpiDISH)
 library(tictoc)
 
+#####
+# Set parameters, change with your own path
+#####
+input_path <- "/bettik/PROJECTS/pr-epimed/amblaeli/projects/acacia_2final/results/0simu/simulations/"
+featselec_K = list("BrCL1"=4,
+                   "PaCL1"=5,
+                   "PaCL2"=9,
+                   "BrCL2"=6,
+                   "BlCL"=6,
+                   "LuCL"=9)
+
+#####
+# Functions
+#####
 featselec_hvg <- function(dat, n_hvg) {
   hvg <- TOAST::findRefinx(dat, nmarker = n_hvg)
   return(hvg)
@@ -23,26 +39,25 @@ featselec_toast <- function(dat, k) {
   return(list(toast = toast, hvf = hvf))
 }
 
-prism.states <- function(dat, ref_profiles, methy = FALSE, nCores = 32) {
+prism.states <- function(dat, ref_profiles, nCores = 32) {
   ncores <- nCores - 1
-  if (methy) {
-    # transform met data to "pseudo"-count data
-    dat <- prism.met.to.count(dat)
-  }
   # define types and states
   state_labels <- colnames(ref_profiles)
   type_labels <- state_labels
-  ## dBREAST: types and states are equals, tumoral type label is "tumor"
-  ## dPANCREAS: 2 tumoral states, 1 tumoral type
+  
+  ## Define variable types (tumor types in our case)
+  ## BrCL1: types and states are equals, tumoral type label is "tumor"
+  ## PaCL1: 2 tumoral states, 1 tumoral type
   type_labels[grepl("TUM_", type_labels)] <- "tumor"
-  ## lot1: 2 tumoral states, 1 tumoral type
+  ## PaCL2: 2 tumoral states, 1 tumoral type
   type_labels[grepl("Cancer ", type_labels)] <- "tumor"
-  ## He: 1 tumoral state and type
+  ## LuCL: 1 tumoral state and type
   type_labels[grepl("A549", type_labels)] <- "tumor"
-  ## Cobos: 3 tumoral states, 1 tumoral type
+  ## BrCL2: 3 tumoral states, 1 tumoral type
   type_labels[grepl("BT474", type_labels)] <- "tumor"
   type_labels[grepl("MCF7", type_labels)] <- "tumor"
   type_labels[grepl("T47D", type_labels)] <- "tumor"
+  
   prism <- BayesPrism::new.prism(
       reference = base::t(ref_profiles),
       mixture = base::t(dat),
@@ -50,6 +65,7 @@ prism.states <- function(dat, ref_profiles, methy = FALSE, nCores = 32) {
       cell.state.labels = state_labels,
       cell.type.labels = type_labels,
       key = "tumor") # create prism obj
+  
   res <- InstaPrism(prismObj = prism, input_type = "prism",
                     n.core = ncores) # run deconv
   A_state <- t(res@Post.ini.cs@theta) # get state props before update
@@ -57,6 +73,8 @@ prism.states <- function(dat, ref_profiles, methy = FALSE, nCores = 32) {
   # get results
   ## we need to "deaggregate" tumoral type to tumoral states
   ### first get tumoral states proportions within the tumoral type
+  
+  ## Deaggregate variable types
   state_labels <- base::colnames(A_state)
   tumoral_states_mask <- state_labels == "tumor" |
     grepl("TUM_", state_labels) |
@@ -85,10 +103,6 @@ prism.states <- function(dat, ref_profiles, methy = FALSE, nCores = 32) {
   return(t(A_matrix[, colnames(ref_profiles)]))
 }
 
-prism.met.to.count <- function(dat, factor = 1000) {
-  return(round(dat * factor))
-}
-
 tpm_norm <- function(dat) {
   TPM = function(counts, lengths) {
     A = intersect(rownames(counts), names(lengths))
@@ -97,7 +111,7 @@ tpm_norm <- function(dat) {
     rate = counts / lengths
     apply(rate, 2, function(x) 1e6 * x / sum(x))
   }
-  human_lengths = readRDS("/bettik/PROJECTS/pr-epimed/amblaeli/projects/acacia/src/TPM/human_lengths.rds")
+  human_lengths = readRDS("../human_lengths.rds")
   matrix = TPM(counts = as.matrix(dat), lengths = human_lengths)
   rownames(matrix) = toupper(rownames(matrix))
   return(matrix)
@@ -125,109 +139,6 @@ do_run_sup_deconvolution = function(method, dat, ref_profiles, threads=32) {
     fardeep = FARDEEP::fardeep(ref_profiles, dat)
     res = t(fardeep$relative.beta)
   }
-  else if (method == "DeconFeature2") {
-    DeconFeature_fun <- function(x, y, tol = 1e-08, max.iter = 1000, learning_rate = 0.6) {
-      m <- nrow(x)
-      p <- ncol(x)
-      mx <- colMeans(x)
-      cx <- as.matrix(x-tcrossprod(rep(1,m),mx))
-      cy <- y-mean(y)
-      beta <- rep(1/p, p)  # uniform
-      fit <- cx%*%beta
-      e <- (cy-fit)[,1]
-      objective <- sum(e^2)
-      iter <- 0
-      delta <- 1
-      while((delta>tol) & (iter<max.iter)) {
-        iter <- iter+1
-        current_b <- beta
-        m_b <- matrix(0,nrow=p,ncol=p)
-        v_obj <- rep(0,p)
-        for (j in 1:p) {
-          b <- current_b
-          fit <- cx%*%b
-          e <- (cy-fit)[,1]
-          grad_j <- -2*crossprod(cx[,j],e) * b[j]*(1-b[j])
-          b[j] = b[j] - learning_rate*grad_j
-          b[-j] <- b[-j]*(1-b[j])/sum(b[-j]) # sum-to-one constraint
-          b3 <- b
-          fit <- cx%*%b
-          e <- (cy-fit)[,1]
-          obj3 <- sum(e^2)
-          b <- current_b
-          b4 <- b
-          fit <- cx%*%b
-          e <- (cy-fit)[,1]
-          obj4 <- sum(e^2)
-          obj <- c(obj3,obj4)
-          b <- cbind(b3,b4)
-          which_min <- which.min(obj)
-          v_obj[j] <- obj[which_min]
-          m_b[,j] <- b[,which_min]
-        }
-        j_opt <- which.min(v_obj)
-        beta <- m_b[,j_opt]
-        objective <- min(v_obj)
-        new_b <- beta
-        delta <- mean(abs(current_b-new_b))
-        current_b <- new_b
-      }
-      fit <- cx%*%beta
-      e <- (cy-fit)[,1]
-      obj <- sum(e^2)
-      trace_beta <- matrix(beta,ncol=1)
-      iter <- 0
-      delta <- 1
-      nonzero <- which(abs(beta)>1e-08)
-      l <- log(beta[nonzero]/(1-beta[nonzero]))
-      Sx <- crossprod(cx[,nonzero])/(m-1)
-      iSx <- solve(Sx)
-      while((delta>tol)&(iter<max.iter)&(length(nonzero)>1)) {
-        iter <- iter+1
-        fit <- cx%*%beta
-        e <- (cy-fit)[,1]
-        objective <- sum(e^2)
-        obj <- c(obj,objective)
-        trace_beta <- cbind(trace_beta,beta)
-        score <- -2*crossprod(cx[,nonzero],e)
-        new_l <- l-(diag(1/(beta[nonzero]*(1-beta[nonzero])),
-                        nrow=length(nonzero),
-                        ncol=length(nonzero))%*%iSx%*%score/(2*(m-1)))[,1]
-        new_beta <- rep(0,times=p)
-        new_beta[nonzero] <- 1/(1+exp(-new_l))
-        new_beta <- new_beta/sum(new_beta)
-        nonzero <- which(abs(new_beta)>1e-08)
-        new_l <- log(new_beta[nonzero]/(1-new_beta[nonzero]))
-        Sx <- crossprod(cx[,nonzero])/(m-1)
-        iSx <- solve(Sx)
-        delta <- mean(abs(beta-new_beta), na.rm=T)
-        beta <- new_beta
-        l <- new_l
-      }
-      beta <- trace_beta[,which.min(obj),drop=TRUE]
-      converged <- TRUE
-      if (iter>=max.iter) {
-        converged <- FALSE
-        warning("Maximum number of iterations reached")
-      }
-      l <- log(beta/(1-beta))
-      fit <- cx%*%beta
-      epsilon <- (cy-fit)[,1]
-      rmse <- sqrt(mean(epsilon^2))
-      return(list(
-        l = l,
-        beta = beta,
-        converged = converged,
-        fit = fit,
-        rmse = rmse
-      ))
-    }
-    DeconF_test = lapply(seq(ncol(dat)), function(sample) {
-      DeconFeature_fun(ref_profiles, dat[,sample])})
-    res = matrix(sapply(seq(ncol(dat)), function(sample) {DeconF_test[[sample]]$beta}), 
-                 nrow = ncol(ref_profiles), 
-                 dimnames = list(colnames(ref_profiles), paste0("train",seq(ncol(dat)))))
-  }
   else if (method == "elasticnet") {
     RESULTS = apply(dat, 2, function(z)
       coef(glmnet::glmnet(x = ref_profiles,
@@ -244,7 +155,7 @@ do_run_sup_deconvolution = function(method, dat, ref_profiles, threads=32) {
   else if (method == "rlr") { #rlr = robust linear regression
     res <- t(epidish(dat, as.matrix(ref_profiles), method = "RPC")$estF)
   }
-  else if (method == "DeconRNASeq") { #NN quadratic programming; lsei function (default: type=1, meaning lsei from quadprog)
+  else if (method == "DeconRNASeq") { #NN quadratic programmin
     require(pcaMethods)
     res = t(DeconRNASeq::DeconRNASeq(datasets = as.data.frame(dat), signatures = as.data.frame(ref_profiles), proportions = NULL, checksig = FALSE, known.prop = FALSE, use.scale = FALSE, fig = FALSE)$out.all)
     res = apply(res, 2, function(x)
@@ -263,20 +174,6 @@ do_run_sup_deconvolution = function(method, dat, ref_profiles, threads=32) {
       x / sum(x)) #explicit STO constraint
     res <- res[, colnames(dat)]
   }
-  else if (method == "svr3") {
-    dat_tpm = tpm_norm(dat)
-    hvg3_tpm = featselec_hvg(dat_tpm, n_hvg =  min(1e3,nrow(dat_tpm)))
-    res <- t(granulator::deconvolute(m = dat_tpm[hvg3_tpm,], sigMatrix = tpm_norm(ref_profiles)[hvg3_tpm,], methods = 'svr', use_cores = threads)$
-               proportions$
-               svr_sig1) #TPM norm
-    res <- res[gsub("_", ".", colnames(ref_profiles)),]
-    rownames(res) <- colnames(ref_profiles)
-    res <- res[, colnames(dat)]
-    res = apply(res, 2, function(x)
-      ifelse(x < 0, 0, x)) #explicit NN constraint
-    res = apply(res, 2, function(x)
-      x / sum(x)) #explicit STO constraint
-  }
   else if (method == "svr") {
     dat_tpm = tpm_norm(dat)
     res <- t(granulator::deconvolute(m = dat_tpm, sigMatrix = tpm_norm(ref_profiles), methods = 'svr', use_cores = threads)$
@@ -289,12 +186,6 @@ do_run_sup_deconvolution = function(method, dat, ref_profiles, threads=32) {
       ifelse(x < 0, 0, x)) #explicit NN constraint
     res = apply(res, 2, function(x)
       x / sum(x)) #explicit STO constraint
-  }
-  else if (method == "CIBERSORT3") {
-    hvg3 = featselec_hvg(dat, n_hvg = min(1e3,nrow(dat)))
-    beta.m = dat[hvg3,]
-    ref.m = as.matrix(ref_profiles[hvg3,])
-    res <- t(epidish(beta.m, ref.m, method = "CBS")$estF)
   }
   else if (method == "CIBERSORT") {
     beta.m = dat
@@ -394,20 +285,12 @@ SB_deconv_lot_method_sim <- function(lot, block, method, method_class, sim, date
   # read files
   T_ref <- as.data.frame(readRDS(paste0(input_path, list.files(input_path, pattern = paste0(date, "_", lot, "_T_", block, "_ref.rds")))))
   sim_files <- sort(list.files(input_path, pattern = paste0(date, "_", lot, "_sim")))
-  # for simulation sim
+  # for replicate sim
   sim_file = sim_files[sim]
   sim <- strsplit(strsplit(sim_file, ".rds")[[1]], "_sim")[[1]][[2]]
   data <- readRDS(paste0(input_path, sim_file))
   dat <- data[[paste0("D_", block, "_sim")]]
   ref_profiles <- T_ref
-  if (!do_featselec) {
-    if (block=="met") {
-      # restrict size of Dmet to 3e4 features for speed
-      hvg_3e4 <- featselec_hvg(dat, n_hvg = 3e4)
-      dat <- dat[hvg_3e4,]
-      ref_profiles <- ref_profiles[hvg_3e4,]
-    }
-  }
   if (do_featselec) {
     # proceed to feature selection
     toast_res <- featselec_toast(dat, featselec_K[[lot]])
@@ -422,21 +305,10 @@ SB_deconv_lot_method_sim <- function(lot, block, method, method_class, sim, date
   saveRDS(A_pred, pred_file)
   saveRDS(timing, time_file)
 }
-
-## ----
-## Set parameters
-## ----
-input_path <- "/bettik/PROJECTS/pr-epimed/amblaeli/projects/acacia_2final/results/0simu/simulations/"
-featselec_K = list("dBREAST"=4,
-                   "dPANCREAS"=5,
-                   "lot1"=9,
-                   "Cobos"=6,
-                   "Hoek"=6,
-                   "He"=9)
-                   
-## ----
-## Deconvolution per lot per method per sim
-## ----
+               
+#####
+# Deconvolution per dataset per method per replicate
+#####
 args <- commandArgs(trailingOnly = TRUE)
 lot = args[1]
 block = args[2]

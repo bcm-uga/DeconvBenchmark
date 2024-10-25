@@ -1,4 +1,4 @@
-# snakemake --cluster "oarsub --project epimed -l /nodes=1/core=32,walltime=24:00:00" --latency-wait 60 --cores 32 --jobs 50
+# snakemake --cluster "oarsub --project epimed -l /nodes=1/core=1,walltime=00:10:00" --latency-wait 60 --cores 1 --jobs 50
 
 DATA_DNAm=['BrCL2','PaCL1','PaCL2','LuCL']
 DATA_RNA=['BrCL1','BrCL2','PaCL1','PaCL2','BlCL']

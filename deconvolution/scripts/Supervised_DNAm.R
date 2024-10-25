@@ -10,6 +10,7 @@ library(tictoc)
 # Set parameters, change with your own path
 #####
 input_path <- "../data/simulations/"
+# true number of cell types in each dataset for the TOAST feature selection step
 featselec_K = list("BrCL1"=4,
                    "BrCL2"=6,
                    "PaCL1"=5,

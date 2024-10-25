@@ -10,6 +10,7 @@ library(tictoc)
 # Set parameters, change with your own path
 #####
 input_path <- "/bettik/PROJECTS/pr-epimed/amblaeli/projects/acacia_2final/results/0simu/simulations/"
+# true number of cell types in each dataset for the TOAST feature selection step
 featselec_K = list("BrCL1"=4,
                    "PaCL1"=5,
                    "PaCL2"=9,

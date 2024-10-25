@@ -13,4 +13,5 @@
 .Renviron
 
 .DS_Store
-.rds
+
+*.rds

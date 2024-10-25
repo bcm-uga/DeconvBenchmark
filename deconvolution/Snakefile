@@ -1,86 +1,86 @@
 # snakemake --cluster "oarsub --project epimed -l /nodes=1/core=32,walltime=24:00:00" --latency-wait 60 --cores 32 --jobs 50
 
-LOTS_RNA=['Cobos','dBREAST','dPANCREAS','Hoek','lot1']
-LOTS_MET=['dBREAST','dPANCREAS','He','lot1']
-METHODS_RNA_SUP=["DeconRNASeq", "CIBERSORT", "elasticnet", "rlr", "WISP", "fardeep", "fardeepsto", "InstaPrism", "nnls", "ols", "svr"]
-METHODS_RNA_UNSUP=["ICA", "NMF", "PREDE", "debCAM", "CDSeq"]
-METHODS_MET_SUP=["rlr", "CIBERSORT", "epidishCP", "InstaPrism", "nnls"]
-METHODS_MET_UNSUP=["RefFreeEWAS", "ICA", "EDec", "NMF", "debCAM", "MeDeCom"]
+DATA_DNAm=['BrCL2','PaCL1','PaCL2','LuCL']
+DATA_RNA=['BrCL1','BrCL2','PaCL1','PaCL2','BlCL']
+METHOD_DNAm_SUP=["rlr", "CIBERSORT", "epidishCP", "InstaPrism", "nnls"]
+METHOD_DNAm_UNSUP=["RefFreeEWAS", "ICA", "EDec", "NMF", "debCAM", "MeDeCom"]
+METHOD_RNA_SUP=["DeconRNASeq", "CIBERSORT", "elasticnet", "rlr", "WISP", "fardeep", "fardeepsto", "InstaPrism", "nnls", "ols", "svr"]
+METHOD_RNA_UNSUP=["ICA", "NMF", "PREDE", "debCAM", "CDSeq"]
 FS=["none","toast","hvf"]
-SIMS=['01','02','03','04','05','06','07','08','09','10']
-DATE='231027'
+REPLICATE=['01','02','03','04','05','06','07','08','09','10']
+DATE='241025'
 
 rule all:
     input:
-        expand("deconv/rna/sup/"+DATE+"/"+DATE+"_{lot}_Apred{fs}_{method}_sim{sim}.rds", lot=LOTS_RNA, method=METHODS_RNA_SUP, sim=SIMS, fs=FS),
-        expand("deconv/rna/unsup/"+DATE+"/"+DATE+"_{lot}_Apred{fs}_{method}_sim{sim}.rds", lot=LOTS_RNA, method=METHODS_RNA_UNSUP, sim=SIMS, fs=FS),
-        expand("deconv/met/sup/"+DATE+"/"+DATE+"_{lot}_Apred{fs}_{method}_sim{sim}.rds", lot=LOTS_MET, method=METHODS_MET_SUP, sim=SIMS, fs=FS),
-        expand("deconv/met/unsup/"+DATE+"/"+DATE+"_{lot}_Apred{fs}_{method}_sim{sim}.rds", lot=LOTS_MET, method=METHODS_MET_UNSUP, sim=SIMS, fs=FS)
+        expand("results/prediction/dnam/sup/"+DATE+"_{data}_Apred{fs}_{method}_sim{sim}.rds", data=DATA_DNAm, method=METHOD_DNAm_SUP, sim=REPLICATE, fs=FS),
+        expand("results/prediction/dnam/unsup/"+DATE+"_{data}_Apred{fs}_{method}_sim{sim}.rds", data=DATA_DNAm, method=METHOD_DNAm_UNSUP, sim=REPLICATE, fs=FS),
+        expand("results/prediction/rna/sup/"+DATE+"_{data}_Apred{fs}_{method}_sim{sim}.rds", data=DATA_RNA, method=METHOD_RNA_SUP, sim=REPLICATE, fs=FS),
+        expand("results/prediction/rna/unsup/"+DATE+"_{data}_Apred{fs}_{method}_sim{sim}.rds", data=DATA_RNA, method=METHOD_RNA_UNSUP, sim=REPLICATE, fs=FS)
+
+rule deconv_dnam_sup:
+    input:
+        script = ancient('scripts/supervised_DNAm.R')
+    params:
+        data = '{data}',
+        method = '{method}',
+        fs = '{fs}',
+        sim = '{sim}',
+        date = '{date}'
+    output:
+        file_res = "results/prediction/dnam/sup/{date}_{data}_Apred{fs}_{method}_sim{sim}.rds",
+        file_time = "results/timing/dnam/sup/{date}_{data}_timing{fs}_{method}_sim{sim}.rds"
+    threads: 32
+    log: stdout="logs/dnam_sup_{date}_{data}_{method}_{sim}_{fs}.log", stderr="logs/dnam_sup_{date}_{data}_{method}_{sim}_{fs}.log"
+    shell:
+        "apptainer exec --bind /bettik/PROJECTS/pr-epimed/amblaeli/projects:/bettik/PROJECTS/pr-epimed/amblaeli/projects container2.sif Rscript {input.script} {params.data} 'dnam' {params.method} 'sup' {params.sim} {params.date} {params.fs} {output.file_res} {output.file_time} > {log.stdout} 2> {log.stderr}"
+
+rule deconv_dnam_unsup:
+    input:
+        script = ancient('scripts/unsupervised_DNAm.R')
+    params:
+        data = '{data}',
+        method = '{method}',
+        fs = '{fs}',
+        sim = '{sim}',
+        date = '{date}'
+    output:
+        file_res = "results/prediction/dnam/unsup/{date}_{data}_Apred{fs}_{method}_sim{sim}.rds",
+        file_time = "results/timing/dnam/unsup/{date}_{data}_timing{fs}_{method}_sim{sim}.rds"
+    threads: 32
+    log: stdout="logs/dnam_unsup_{date}_{data}_{method}_{sim}_{fs}.log", stderr="logs/dnam_unsup_{date}_{data}_{method}_{sim}_{fs}.log"
+    shell:
+        "apptainer exec --bind /bettik/PROJECTS/pr-epimed/amblaeli/projects:/bettik/PROJECTS/pr-epimed/amblaeli/projects container2.sif Rscript {input.script} {params.data} 'dnam' {params.method} 'unsup' {params.sim} {params.date} {params.fs} {output.file_res} {output.file_time} > {log.stdout} 2> {log.stderr}"
 
 rule deconv_rna_sup:
     input:
-        script = ancient('scripts/1_deconv_rna_sup.R')
+        script = ancient('scripts/supervised_RNA.R')
     params:
-        lot = '{lot}',
+        data = '{data}',
         method = '{method}',
         fs = '{fs}',
         sim = '{sim}',
         date = '{date}'
     output:
-        file_res = "deconv/rna/sup/{date}/{date}_{lot}_Apred{fs}_{method}_sim{sim}.rds",
-        file_time = "timing/rna/sup/{date}/{date}_{lot}_timing{fs}_{method}_sim{sim}.rds"
+        file_res = "results/prediction/rna/sup/{date}_{data}_Apred{fs}_{method}_sim{sim}.rds",
+        file_time = "results/timing/rna/sup/{date}_{data}_timing{fs}_{method}_sim{sim}.rds"
     threads: 32
-    log: stdout="logs/rna_sup_{date}_{lot}_{method}_{sim}_{fs}.log", stderr="logs/rna_sup_{date}_{lot}_{method}_{sim}_{fs}.log"
+    log: stdout="logs/rna_sup_{date}_{data}_{method}_{sim}_{fs}.log", stderr="logs/rna_sup_{date}_{data}_{method}_{sim}_{fs}.log"
     shell:
-        "apptainer exec --bind /bettik/PROJECTS/pr-epimed/amblaeli/projects:/bettik/PROJECTS/pr-epimed/amblaeli/projects ../../container2.sif Rscript {input.script} {params.lot} 'rna' {params.method} 'sup' {params.sim} {params.date} {params.fs} {output.file_res} {output.file_time} > {log.stdout} 2> {log.stderr}"
+        "apptainer exec --bind /bettik/PROJECTS/pr-epimed/amblaeli/projects:/bettik/PROJECTS/pr-epimed/amblaeli/projects container2.sif Rscript {input.script} {params.data} 'rna' {params.method} 'sup' {params.sim} {params.date} {params.fs} {output.file_res} {output.file_time} > {log.stdout} 2> {log.stderr}"
 
 rule deconv_rna_unsup:
     input:
-        script = ancient('scripts/1_deconv_rna_unsup.R')
+        script = ancient('scripts/unsupervised_RNA.R')
     params:
-        lot = '{lot}',
+        data = '{data}',
         method = '{method}',
         fs = '{fs}',
         sim = '{sim}',
         date = '{date}'
     output:
-        file_res = "deconv/rna/unsup/{date}/{date}_{lot}_Apred{fs}_{method}_sim{sim}.rds",
-        file_time = "timing/rna/unsup/{date}/{date}_{lot}_timing{fs}_{method}_sim{sim}.rds"
+        file_res = "results/prediction/rna/unsup/{date}_{data}_Apred{fs}_{method}_sim{sim}.rds",
+        file_time = "results/timing/rna/unsup/{date}_{data}_timing{fs}_{method}_sim{sim}.rds"
     threads: 32
-    log: stdout="logs/rna_unsup_{date}_{lot}_{method}_{sim}_{fs}.log", stderr="logs/rna_unsup_{date}_{lot}_{method}_{sim}_{fs}.log"
+    log: stdout="logs/rna_unsup_{date}_{data}_{method}_{sim}_{fs}.log", stderr="logs/rna_unsup_{date}_{data}_{method}_{sim}_{fs}.log"
     shell:
-        "apptainer exec --bind /bettik/PROJECTS/pr-epimed/amblaeli/projects:/bettik/PROJECTS/pr-epimed/amblaeli/projects ../../container2.sif Rscript {input.script} {params.lot} 'rna' {params.method} 'unsup' {params.sim} {params.date} {params.fs} {output.file_res} {output.file_time} > {log.stdout} 2> {log.stderr}"
-
-rule deconv_met_sup:
-    input:
-        script = ancient('scripts/1_deconv_met_sup.R')
-    params:
-        lot = '{lot}',
-        method = '{method}',
-        fs = '{fs}',
-        sim = '{sim}',
-        date = '{date}'
-    output:
-        file_res = "deconv/met/sup/{date}/{date}_{lot}_Apred{fs}_{method}_sim{sim}.rds",
-        file_time = "timing/met/sup/{date}/{date}_{lot}_timing{fs}_{method}_sim{sim}.rds"
-    threads: 32
-    log: stdout="logs/met_sup_{date}_{lot}_{method}_{sim}_{fs}.log", stderr="logs/met_sup_{date}_{lot}_{method}_{sim}_{fs}.log"
-    shell:
-        "apptainer exec --bind /bettik/PROJECTS/pr-epimed/amblaeli/projects:/bettik/PROJECTS/pr-epimed/amblaeli/projects ../../container2.sif Rscript {input.script} {params.lot} 'met' {params.method} 'sup' {params.sim} {params.date} {params.fs} {output.file_res} {output.file_time} > {log.stdout} 2> {log.stderr}"
-
-rule deconv_met_unsup:
-    input:
-        script = ancient('scripts/1_deconv_met_unsup.R')
-    params:
-        lot = '{lot}',
-        method = '{method}',
-        fs = '{fs}',
-        sim = '{sim}',
-        date = '{date}'
-    output:
-        file_res = "deconv/met/unsup/{date}/{date}_{lot}_Apred{fs}_{method}_sim{sim}.rds",
-        file_time = "timing/met/unsup/{date}/{date}_{lot}_timing{fs}_{method}_sim{sim}.rds"
-    threads: 32
-    log: stdout="logs/met_unsup_{date}_{lot}_{method}_{sim}_{fs}.log", stderr="logs/met_unsup_{date}_{lot}_{method}_{sim}_{fs}.log"
-    shell:
-        "apptainer exec --bind /bettik/PROJECTS/pr-epimed/amblaeli/projects:/bettik/PROJECTS/pr-epimed/amblaeli/projects ../../container2.sif Rscript {input.script} {params.lot} 'met' {params.method} 'unsup' {params.sim} {params.date} {params.fs} {output.file_res} {output.file_time} > {log.stdout} 2> {log.stderr}"
+        "apptainer exec --bind /bettik/PROJECTS/pr-epimed/amblaeli/projects:/bettik/PROJECTS/pr-epimed/amblaeli/projects container2.sif Rscript {input.script} {params. data} 'rna' {params.method} 'unsup' {params.sim} {params.date} {params.fs} {output.file_res} {output.file_time} > {log.stdout} 2> {log.stderr}"

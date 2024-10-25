@@ -130,21 +130,21 @@ do_run_unsup_deconvolution = function(method, dat, Atrue, option=c("Amat","Tmat"
               time_elapsed=time_elapsed))
 }
 
-SB_deconv_lot_method_sim <- function(lot, block, method, method_class, sim, date, input_path, pred_file, time_file, fs) {
+SB_deconv_lot_method_sim <- function(lot, omic, method, method_class, sim, date, input_path, pred_file, time_file, fs) {
   do_featselec <- ifelse(fs=="none",F,T)
-  input_path <- paste0(input_path, block, "/")
+  input_path <- paste0(input_path, omic, "/")
   # read files
-  T_ref <- as.data.frame(readRDS(paste0(input_path, list.files(input_path, pattern = paste0(date, "_", lot, "_T_", block, "_ref.rds")))))
+  T_ref <- as.data.frame(readRDS(paste0(input_path, list.files(input_path, pattern = paste0(date, "_", lot, "_T_", omic, "_ref.rds")))))
   sim_files <- sort(list.files(input_path, pattern = paste0(date, "_", lot, "_sim")))
   # for replicate sim
   sim_file = sim_files[sim]
   sim <- strsplit(strsplit(sim_file, ".rds")[[1]], "_sim")[[1]][[2]]
   data <- readRDS(paste0(input_path, sim_file))
-  dat <- data[[paste0("D_", block, "_sim")]]
+  dat <- data[[paste0("D_", omic, "_sim")]]
   ref_profiles <- T_ref
   if (!do_featselec) {
-    if (block=="met") {
-      # restrict size of Dmet to 3e4 features for speed
+    if (omic=="dnam") {
+      # restrict size of Ddnam to 3e4 features for speed
       hvg_3e4 <- featselec_hvg(dat, n_hvg = 3e4)
       dat <- dat[hvg_3e4,]
       ref_profiles <- ref_profiles[hvg_3e4,]
@@ -170,7 +170,7 @@ SB_deconv_lot_method_sim <- function(lot, block, method, method_class, sim, date
 #####
 args <- commandArgs(trailingOnly = TRUE)
 lot = args[1]
-block = args[2]
+omic = args[2]
 method = args[3]
 method_class = args[4]
 sim = args[5]
@@ -179,6 +179,6 @@ fs = args[7]
 pred_file = args[8]
 time_file = args[9]
 
-SB_deconv_lot_method_sim(lot, block, method, method_class,
+SB_deconv_lot_method_sim(lot, omic, method, method_class,
                          ifelse(sim=="10",10,as.numeric(strsplit(sim,"")[[1]][2])),
                          date, input_path, pred_file, time_file, fs)

@@ -1,6 +1,6 @@
-This folder contains the scripts to do the simulations, as well as the script to generate an additional fake cell types.
+This folder contains the scripts to do the simulations, as well as the script to generate a reference with an additional fake cell type.
 
-The reference matrices used for the in silico data can be downloaded from Zenodo
+The reference matrices used for the in silico data can be downloaded from Zenodo.
 
 LINK
 

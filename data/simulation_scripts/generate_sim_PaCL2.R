@@ -1,52 +1,50 @@
 set.seed(0)
-today <- format(Sys.Date(), format = "%y%m%d")
+today=format(Sys.Date(), format="%y%m%d")
 
 ## ----
 ## Add libs
 ## ----
-source(paste0("../../src/0simu_load_data_lot.R"))
-source(paste0("../../src/0simu_dirichlet_functions_lot.R"))
-
-lot <- "lot1"
+source("generic_functions.R")
 
 ## ----
-## load data
+## Load data using your own path
 ## ----
 print("-> Loading data...")
-data_gt <- load_data_lot(lot)
-data <- data_gt$data
-gt <- data_gt$gt
-n_cell_types <- nrow(gt)
-ref_row_order <- unname(apply(gt[, (ncol(gt) - n_cell_types + 1):ncol(gt)],
-                              2,
-                              function(x) rownames(gt)[x == 1]))
-T_rna <- data$rna[, (ncol(data$rna) - n_cell_types + 1):ncol(data$rna)]
-colnames(T_rna) <- ref_row_order
-T_met <- data$met[, (ncol(data$met) - n_cell_types + 1):ncol(data$met)]
-colnames(T_met) <- ref_row_order
-celltypes <- rownames(gt)
-rm(gt)
-saveRDS(T_rna[, sort(colnames(T_rna))], file = paste0("simulations/rna/", today, "_", lot, "_T_rna_ref.rds"))
-saveRDS(T_met[, sort(colnames(T_met))], file = paste0("simulations/met/", today, "_", lot, "_T_met_ref.rds"))
+T_rna <- readRDS("../references/PaCL2_rna.rds")
+T_met <- readRDS("../references/PaCL2_met.rds")
+colnames(T_rna)[2:3] = c("TUM basal","TUM classical")
+colnames(T_met)[2:3] = c("TUM basal","TUM classical")
 
 ## ----
-## generate simulated set
+## Fix parameters for the simulation
 ## ----
-n_samples <- 120
-print(paste0("-> Generate training set..."))
-n_rep <- 10
+n_rep = 10
+n_samples = 120
+varCrit = 10
+alpha = c(0.01, 0.04, 0.03, 0.15, 0.46, 0.01, 0.01, 0.29)
+p = .1
+
+## ----
+## Generate simulations stored in a folder called 'simulations'
+## ----
+print(paste0("-> Generate simu..."))
 for (i in seq(n_rep)) {
-  sim_txt <- ifelse(length(strsplit(as.character(i), "")[[1]]) == 1, 'sim0', 'sim')
-  if (!file.exists(paste0("simulations/met/", today, "_", lot, "_", sim_txt, i, ".rds")) &
-    !file.exists(paste0("simulations/rna/", today, "_", lot, "_", sim_txt, i, ".rds")))
-    print(paste0("Simu n°", i))
-  data_simu_clean0 <- generate_simu_set(data, celltypes, n_samples = n_samples, varCrit = 10)
-  prop_simu <- data_simu_clean0[[3]]
-  data_simu_clean <- data_simu_clean0[1:2]
-  data_simu <- generate_simu_noise(data_simu_clean[[1]], data_simu_clean[[2]],
-                                   p = 0.1) # data raw
-  saveRDS(list(D_rna_sim = data_simu[[1]],
-               A_ref = prop_simu), file = paste0("simulations/rna/", today, "_", lot, "_", sim_txt, i, ".rds"))
-  saveRDS(list(D_met_sim = data_simu[[2]],
-               A_ref = prop_simu), file = paste0("simulations/met/", today, "_", lot, "_", sim_txt, i, ".rds"))
+  sim_txt <- ifelse(length(strsplit(as.character(i),"")[[1]])==1,'sim0','sim')
+  print(paste0("Simu n°",i))
+  data_simu_clean_tot <- generate_simu_tot(alph=alpha,
+                                           ref_rna=T_rna,
+                                           ref_met=T_met,
+                                           n_samples=n_samples,
+                                           varCrit=varCrit,
+                                           dataset_pdac=T)
+  Amat <- data_simu_clean_tot$Amat
+  rownames(Amat)[2:3] = c("Cancer basal","Cancer classical")
+  Dmat_noise <- add_noise(data_simu_clean_tot,
+                          p=p)
+  saveRDS(list(D_rna_sim = Dmat_noise$Drna,
+               A_ref = Amat),
+          file=paste0("../simulations/rna/",today,"_PaCL2_",sim_txt,i,".rds"))
+  saveRDS(list(D_met_sim = Dmat_noise$Dmet,
+               A_ref = Amat),
+          file=paste0("../simulations/met/",today,"_PaCL2_",sim_txt,i,".rds"))
 }

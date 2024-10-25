@@ -1,48 +1,79 @@
-generate_proportions <- function(n_samples, celltypes, alph, varCrit) {
-  num.cell.types = length(celltypes)
+generate_proportions <- function(n_samples, celltypes, alph, varCrit, dataset_pdac) {
   # Compute proportions of various compartments
-  comp_mix <-t(gtools::rdirichlet(n = n_samples, alpha=alph*varCrit))
-  # Merge total matrix proportion
-  rownames(comp_mix) = celltypes
+  if (! dataset_pdac) {
+    comp_mix <-t(gtools::rdirichlet(n = n_samples, alpha=alph*varCrit))
+    rownames(comp_mix) = celltypes
+  }
+  else {
+    num.cell.types = length(celltypes)
+    # Compute proportions of all compartments
+    global_mix <-t(gtools::rdirichlet(n = n_samples, alpha=alph*varCrit))
+    # Compute relative proportions of tumor types with varying proportions
+    #tumor_mix <- t(gtools::rdirichlet(n = n_samples, alpha = c(0.5, 0.5)))
+    tumor_mix <- cbind(t(gtools::rdirichlet(n = 1*n_samples / 6, alpha = c(0.5, 0.5))),
+                       t(gtools::rdirichlet(n = 2*n_samples / 6, alpha = c(0.25, 0.75))),
+                       t(gtools::rdirichlet(n = 1*n_samples / 6, alpha = c(0.75, 0.25))),
+                       t(gtools::rdirichlet(n = 2*n_samples / 6, alpha = c(0.1, 0.9))))
+    # Merge total matrix proportion
+    comp_mix <- matrix(nrow = num.cell.types, ncol = n_samples)
+    rownames(comp_mix) = c(celltypes[-grep("TUM",celltypes)],
+                          celltypes[grep("TUM",celltypes)])
+    comp_mix[1:(num.cell.types - 2), ] <- global_mix[1:(num.cell.types - 2),]
+    comp_mix[num.cell.types - 1, ] <- tumor_mix[1, ] * global_mix[num.cell.types - 1,]
+    comp_mix[num.cell.types,] <- tumor_mix[2, ] * global_mix[num.cell.types - 1,]
+    comp_mix <- comp_mix[celltypes,]
+  }
   colnames(comp_mix) = paste("train", 1:n_samples, sep = "")
   return(comp_mix)
 }
 
-# 0.45 for fib
-# 0.1 for imm
-# 0.15 for norm
-# 0.3 for tum
-generate_simu_set <- function(profile_rna, profile_met, n_samples=500, alph=c(0.45, 0.1, 0.15, 0.3), varCrit=10) {
-  num.cell.types <- ncol(profile_rna)
-  test_solution <- generate_proportions(n_samples, colnames(profile_rna), alph, varCrit) #prop x sample
-  test_data_rna <- as.matrix(profile_rna[,colnames(profile_rna)]) %*% test_solution[colnames(profile_rna),] #normalized gene x sample
-  test_data_met <- as.matrix(profile_met[,colnames(profile_rna)]) %*% test_solution[colnames(profile_rna),] #probe x sample
-  return(list(D_rna=test_data_rna,
-              D_met=test_data_met,
-              A=test_solution[colnames(profile_rna),]))
+generate_simu_tot <- function(alph, ref_rna=NULL, ref_met=NULL, n_samples=120, varCrit=10, dataset_pdac=F) {
+  if (!is.null(ref_rna)) {
+    celltypes <- colnames(ref_rna)
+  } else {celltypes <- colnames(ref_met)}
+  Amat <- generate_proportions(n_samples, celltypes, alph, varCrit, dataset_pdac) #prop x sample
+  # convolution
+  if (!is.null(ref_rna)) {
+    Drna <- as.matrix(ref_rna[,celltypes]) %*% Amat[celltypes,]
+  }
+  if (!is.null(ref_met)) {
+    Dmet <- as.matrix(ref_met[,celltypes]) %*% Amat[celltypes,]
+  }
+  result = list()
+  if (!is.null(ref_rna)) {
+    result$Drna <- Drna
+  }
+  if (!is.null(ref_met)) {
+    result$Dmet <- Dmet
+  }
+  result$Amat <- Amat[celltypes,]
+  return(result)
 }
 
-generate_simu_noise <- function(D_rna, D_met, p, sd_rna=1, sd_met=3) {
-  row_names=rownames(D_rna)
-  D_rna <- add_noise_nb(D_rna, p, sd_rna)
-  beta_val <- D_met
-  tmp_m <- pmax(beta_val,.Machine$double.eps)/pmax((1-beta_val),.Machine$double.eps)
-  m_val <- add_noise_gaussian(log2(tmp_m), sd_met)
-  D_met <- 2^m_val/(2^m_val+1) #probe x sample
-  D_met[D_met<0] <- beta_val[D_met<0]
-  rownames(D_rna)=row_names
-  colnames(D_rna)=colnames(D_met)
-  return(list(D_rna=D_rna, D_met=D_met))
+add_noise <- function(result, p, sd_rna=1, sd_met=3) {
+  omic = grep("D",names(result),value=T)
+  result_noise = list()
+  if ("Drna" %in% omic) {
+    Drna_noise <- add_noise_nb(result$Drna, p, sd_rna)
+    rownames(Drna_noise)=rownames(result$Drna)
+    colnames(Drna_noise)=colnames(result$Drna)
+    result_noise$Drna <- Drna_noise
+  }
+  if ("Dmet" %in% omic) {
+    beta_val <- result$Dmet
+    tmp_m <- pmax(beta_val,.Machine$double.eps)/pmax((1-beta_val),.Machine$double.eps)
+    m_val <- add_noise_gaussian(log2(tmp_m), sd_met)
+    Dmet_noise <- 2^m_val/(2^m_val+1) #probe x sample
+    Dmet_noise[Dmet_noise<0] <- beta_val[Dmet_noise<0]
+    rownames(Dmet_noise)=rownames(result$Dmet)
+    colnames(Dmet_noise)=colnames(result$Dmet)
+    result_noise$Dmet <- Dmet_noise
+  }
+  return(result_noise)
 }
 
-add_noise_gaussian = function(dt, sd, mean=0) {
-  noise = matrix(rnorm(prod(dim(dt)), mean = mean, sd = sd), nrow = nrow(dt))
-  data_noise = dt + noise
-  return(data_noise)
-}
-
-add_noise_nb = function(dt, p, sd=1) {
-  delta = matrix(rnorm(prod(dim(dt)), mean = 0, sd = sd),nrow=nrow(dt))
+add_noise_nb = function(dt, p, sd) {
+  delta = matrix(rnorm(prod(dim(dt)), mean=0, sd=sd), nrow=nrow(dt))
   mu_i_0 = dt/colSums(dt) * mean(colSums(dt))
   sigma_i = (1.8*p + 1/sqrt(mu_i_0))*exp(delta/2)
   shape = 1/(sigma_i^2)
@@ -54,15 +85,8 @@ add_noise_nb = function(dt, p, sd=1) {
   return(v_i)
 }
 
-scale_data <- function(D_rna, D_met=NULL) {
-  size.factor <- DESeq2::estimateSizeFactorsForMatrix(D_rna) 
-  D_rna <- sweep(D_rna, 2, size.factor, "/")
-  D_rna <- log2(D_rna + 1)
-  D_rna <- D_rna/sqrt(nrow(D_rna))
-  if (!is.null(D_met)) {
-    D_met <- t(scale(t(D_met)))
-    D_met <- D_met/sqrt(nrow(D_met))
-    return(list(D_rna=D_rna, D_met=D_met))
-  }
-  else return(D_rna)
+add_noise_gaussian = function(dt, sd, mean=0) {
+  noise = matrix(rnorm(prod(dim(dt)), mean = mean, sd = sd), nrow = nrow(dt))
+  data_noise = dt + noise
+  return(data_noise)
 }

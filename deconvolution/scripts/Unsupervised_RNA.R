@@ -1,8 +1,25 @@
 set.seed(1)
 
-# Functions
+#####
+# Libraries
+#####
 library(tictoc)
 
+#####
+# Set parameters, change with your own path
+#####
+input_path <- "../data/simulations/"
+# true number of cell types in each dataset for the TOAST feature selection step
+featselec_K = list("BrCL1"=4,
+                   "BrCL2"=6,
+                   "PaCL1"=5,
+                   "PaCL2"=9,
+                   "BlCL"=6,
+                   "LuCL"=9)
+
+#####
+# Functions
+#####
 featselec_hvg <- function(dat, n_hvg) {
   hvg <- TOAST::findRefinx(dat, nmarker = n_hvg)
   return(hvg)
@@ -22,11 +39,11 @@ featselec_toast <- function(dat, k) {
   return(list(toast = toast, hvf = hvf))
 }
 
-do_run_unsup_deconvolution = function(method, dat, option = c("Tmat", "Amat"), prop_simu = NULL, ref_profiles = NULL, dist = F, threads = 32) {
-  k = nrow(prop_simu)
+do_run_unsup_deconvolution = function(method, dat, Atrue, option = c("Amat", "Tmat"), ref_profiles = NULL, dist = F, threads = 32) {
+  k = nrow(Atrue)
   if (method=="NMF") {library(NMF)}
   tic(method)
-  if (method == "ICA") {
+  if (method=="ICA") {
     res <- fastICA::fastICA(X = dat, n.comp = k, maxit = 1000, tol = 1e-09)
     res$names = row.names(dat)
     weighted.list <- deconica::generate_markers(df = res,
@@ -38,23 +55,24 @@ do_run_unsup_deconvolution = function(method, dat, option = c("Tmat", "Amat"), p
     res = list(A_matrix = res$A_weighted,
                T_matrix = res$S)
   }
-  else if (method == "NMF") {
+  else if (method=="NMF") {
     x = dat[rowSums(dat) > 0,]
     res <- NMF::nmf(x = x, rank = k, method = "snmf/r", seed = 1)
-    res <- list(A_matrix = apply(X = res@fit@H, 2, function(z) {
-      z / sum(z) }), #explicit STO constraint
-                T_matrix = res@fit@W)
-    if (any(rowSums(res$A_matrix) == 0)) {
-      res$A_matrix[rowSums(res$A_matrix) == 0, 1] <- 1e-5
+    A = apply(X = res@fit@H, 2, function(z) {
+      z / sum(z) }) #explicit STO constraint
+    if (any(rowSums(A) == 0)) {
+      A[rowSums(A) == 0, 1] <- 1e-5
     }
-    if (any(apply(res$A_matrix,1,function(x) all(x==1))==T)) {
-      idx_row = which(apply(res$A_matrix,1,function(x) all(x==1)))
-      for (i in seq(ncol(res$A_matrix))) {
-        res$A_matrix[idx_row,i] <- res$A_matrix[idx_row,i] - runif(1,0,1e-5)
+    if (any(apply(A,1,function(x) all(x==1))==T)) {
+      idx_row = which(apply(A,1,function(x) all(x==1)))
+      for (i in seq(ncol(A))) {
+        A[idx_row,i] <- A[idx_row,i] - runif(1,0,1e-5)
       }
     }
+    res <- list(A_matrix = A,
+                T_matrix = res@fit@W)
   }
-  else if (method == "CDSeq") {
+  else if (method=="CDSeq") {
     nsz <- ceiling(nrow(dat) * 1e-3 / 8)
     nblock <- ceiling(nrow(dat) / (nsz * 1e3))
     redFact <- 2^(1 + (median(log2(1 + dat[dat > 0])) %/% 5))
@@ -76,38 +94,36 @@ do_run_unsup_deconvolution = function(method, dat, option = c("Tmat", "Amat"), p
     res = list(A_matrix = res$estProp,
                T_matrix = res$estGEP)
   }
-  else if (method == "PREDE") {
-    mat <- as.matrix(dat)
-    pred <- PREDE::PREDE(mat, W1 = NULL, type = "GE", K = k,
+  else if (method=="PREDE") {
+    pred <- PREDE::PREDE(as.matrix(dat), W1 = NULL, type = "GE", K = k,
                          iters = 100, rssDiffStop = 1e-5)
     pred$H[pred$H<0] <- 0
     res = list(A_matrix = pred$H,
                T_matrix = pred$W)
   }
-  else if (method == "debCAM") {
+  else if (method=="debCAM") {
     cluster.num = min(5*k, ncol(dat) - 1 )
     if (nrow(dat) < 200) {
       dim.rdc = max(cluster.num, nrow(dat)/10) 
-    } else dim.rdc = 10
+    } else {dim.rdc = 10}
     rCAM <- debCAM::CAM(data = dat,
                         K = k,
                         cluster.num = cluster.num,
                         MG.num.thres = 1,
                         lof.thres = 0,
-                        dim.rdc =  dim.rdc
-    )
+                        dim.rdc =  dim.rdc)
     res = list(A_matrix = t(debCAM::Amat(rCAM, k)),
                T_matrix = debCAM::Smat(rCAM, k))
   }
   time_elapsed = toc()
   time_elapsed = time_elapsed$toc - time_elapsed$tic
-  if (option == "Tmat") {
-    hvg = featselec_hvg(dat, n_hvg = 1e3)
-    elt1 = ref_profiles[hvg,]
-    elt2 = res$T_matrix[hvg,]
-  }
-  else if (option == "Amat") {
-    elt1 = t(prop_simu)
+  #if (option == "Tmat") {
+  #  hvg = featselec_hvg(dat, n_hvg = 1e3)
+  #  elt1 = ref_profiles[hvg,]
+  #  elt2 = res$T_matrix[hvg,]
+  #}
+  if (option=="Amat") {
+    elt1 = t(Atrue)
     elt2 = t(res$A_matrix)
   }
   elt1 = elt1[, sort(colnames(elt1))]
@@ -119,7 +135,8 @@ do_run_unsup_deconvolution = function(method, dat, option = c("Tmat", "Amat"), p
   }
   res$A_matrix <- res$A_matrix[row_order,]
   rownames(res$A_matrix) <- colnames(elt1)
-  return(list(res = res$A_matrix, time_elapsed = time_elapsed))
+  return(list(res = res$A_matrix,
+              time_elapsed = time_elapsed))
 }
 
 SB_deconv_lot_method_sim <- function(lot, block, method, method_class, sim, date, input_path, pred_file, time_file, fs) {
@@ -128,20 +145,12 @@ SB_deconv_lot_method_sim <- function(lot, block, method, method_class, sim, date
   # read files
   T_ref <- as.data.frame(readRDS(paste0(input_path, list.files(input_path, pattern = paste0(date, "_", lot, "_T_", block, "_ref.rds")))))
   sim_files <- sort(list.files(input_path, pattern = paste0(date, "_", lot, "_sim")))
-  # for simulation sim
+  # for replicate sim
   sim_file = sim_files[sim]
   sim <- strsplit(strsplit(sim_file, ".rds")[[1]], "_sim")[[1]][[2]]
   data <- readRDS(paste0(input_path, sim_file))
   dat <- data[[paste0("D_", block, "_sim")]]
   ref_profiles <- T_ref
-  if (!do_featselec) {
-    if (block=="met") {
-      # restrict size of Dmet to 3e4 features for speed
-      hvg_3e4 <- featselec_hvg(dat, n_hvg = 3e4)
-      dat <- dat[hvg_3e4,]
-      ref_profiles <- ref_profiles[hvg_3e4,]
-    }
-  }
   if (do_featselec) {
     # proceed to feature selection
     toast_res <- featselec_toast(dat, featselec_K[[lot]])
@@ -149,28 +158,17 @@ SB_deconv_lot_method_sim <- function(lot, block, method, method_class, sim, date
     ref_profiles <- ref_profiles[toast_res[[fs]],]
   }
   # run deconvolution
-  prop_simu <- data$A_ref
-  deconv_res <- do_run_unsup_deconvolution(method, dat, "Amat", prop_simu = prop_simu)
+  Atrue <- data$A_ref
+  deconv_res <- do_run_unsup_deconvolution(method, dat, "Amat", Atrue = Atrue)
   A_pred <- deconv_res$res
   timing <- deconv_res$time_elapsed
   saveRDS(A_pred, pred_file)
   saveRDS(timing, time_file)
 }
-
-## ----
-## Set parameters
-## ----
-input_path <- "/bettik/PROJECTS/pr-epimed/amblaeli/projects/acacia_2final/results/0simu/simulations/"
-featselec_K = list("dBREAST"=4,
-                   "dPANCREAS"=5,
-                   "lot1"=9,
-                   "Cobos"=6,
-                   "Hoek"=6,
-                   "He"=9)
                    
-## ----
-## Deconvolution per lot per method per sim
-## ----
+#####
+# Deconvolution per dataset per method per replicate
+#####
 args <- commandArgs(trailingOnly = TRUE)
 lot = args[1]
 block = args[2]

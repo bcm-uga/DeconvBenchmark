@@ -9,12 +9,12 @@ library(tictoc)
 #####
 # Set parameters, change with your own path
 #####
-input_path <- "/bettik/PROJECTS/pr-epimed/amblaeli/projects/acacia_2final/results/0simu/simulations/"
+input_path <- "../data/simulations/"
 # true number of cell types in each dataset for the TOAST feature selection step
 featselec_K = list("BrCL1"=4,
+                   "BrCL2"=6,
                    "PaCL1"=5,
                    "PaCL2"=9,
-                   "BrCL2"=6,
                    "BlCL"=6,
                    "LuCL"=9)
 
@@ -119,9 +119,9 @@ tpm_norm <- function(dat) {
 }
 
 do_run_sup_deconvolution = function(method, dat, ref_profiles, threads=32) {
-  if (method == 'InstaPrism') {library(InstaPrism)}
+  if (method=='InstaPrism') {library(InstaPrism)}
   tic(method)
-  if (method == "ols") {
+  if (method=="ols") {
     res <- t(granulator::deconvolute(m = tpm_norm(dat), sigMatrix = tpm_norm(ref_profiles), methods = method, use_cores = threads)$
                proportions$
                ols_sig1) #TPM norm
@@ -132,15 +132,15 @@ do_run_sup_deconvolution = function(method, dat, ref_profiles, threads=32) {
     res = apply(res, 2, function(x)
       x / sum(x)) #explicit STO constraint
   }
-  else if (method == "fardeep") {
+  else if (method=="fardeep") {
     fardeep = FARDEEP::fardeep(ref_profiles, dat)
     res = t(fardeep$abs.beta)
   }
-  else if (method == "fardeepsto") {
+  else if (method=="fardeepsto") {
     fardeep = FARDEEP::fardeep(ref_profiles, dat)
     res = t(fardeep$relative.beta)
   }
-  else if (method == "elasticnet") {
+  else if (method=="elasticnet") {
     RESULTS = apply(dat, 2, function(z)
       coef(glmnet::glmnet(x = ref_profiles,
                           y = z,
@@ -153,17 +153,17 @@ do_run_sup_deconvolution = function(method, dat, ref_profiles, threads=32) {
       x / sum(x)) #explicit STO constraint
     res = RESULTS
   }
-  else if (method == "rlr") { #rlr = robust linear regression
+  else if (method=="rlr") { #rlr = robust linear regression
     res <- t(epidish(dat, as.matrix(ref_profiles), method = "RPC")$estF)
   }
-  else if (method == "DeconRNASeq") { #NN quadratic programmin
+  else if (method=="DeconRNASeq") { #NN quadratic programmin
     require(pcaMethods)
     res = t(DeconRNASeq::DeconRNASeq(datasets = as.data.frame(dat), signatures = as.data.frame(ref_profiles), proportions = NULL, checksig = FALSE, known.prop = FALSE, use.scale = FALSE, fig = FALSE)$out.all)
     res = apply(res, 2, function(x)
       x / sum(x)) #explicit STO constraint
     colnames(res) = colnames(dat)
   }
-  else if (method == "nnls") {
+  else if (method=="nnls") {
     res <- t(granulator::deconvolute(m = tpm_norm(dat), sigMatrix = tpm_norm(ref_profiles), methods = method, use_cores = threads)$
                proportions$
                nnls_sig1) #TPM norm
@@ -175,7 +175,7 @@ do_run_sup_deconvolution = function(method, dat, ref_profiles, threads=32) {
       x / sum(x)) #explicit STO constraint
     res <- res[, colnames(dat)]
   }
-  else if (method == "svr") {
+  else if (method=="svr") {
     dat_tpm = tpm_norm(dat)
     res <- t(granulator::deconvolute(m = dat_tpm, sigMatrix = tpm_norm(ref_profiles), methods = 'svr', use_cores = threads)$
                proportions$
@@ -188,12 +188,12 @@ do_run_sup_deconvolution = function(method, dat, ref_profiles, threads=32) {
     res = apply(res, 2, function(x)
       x / sum(x)) #explicit STO constraint
   }
-  else if (method == "CIBERSORT") {
+  else if (method=="CIBERSORT") {
     beta.m = dat
     ref.m = as.matrix(ref_profiles)
     res <- t(epidish(beta.m, ref.m, method = "CBS")$estF)
   }
-  else if (method == "WISP") {
+  else if (method=="WISP") {
     getWeight = function(data, centro, scaling = c("none", "scale", "center")[1], cutoff_gobalFtest = 0.05, Rsquared_cutoff = 0.5, cutoff_ttest_weights = 0.05, sum_LessThanOne = TRUE) {
       g = intersect(rownames(data), rownames(centro))
       data = data[g,]
@@ -272,7 +272,7 @@ do_run_sup_deconvolution = function(method, dat, ref_profiles, threads=32) {
     res <- apply(res, 2, function(x) x / sum(x))
     rownames(res) = colnames(ref_profiles)
   }
-  else if (method == "InstaPrism") {
+  else if (method=="InstaPrism") {
     res <- prism.states(dat, ref_profiles, nCores=threads)
   }
   time_elapsed = toc()

@@ -119,7 +119,7 @@ do_run_sup_deconvolution <- function(method, dat, ref_profiles, threads=32) {
     rownames(ref.m) = rownames(beta.m)
     res <- t(epidish(beta.m, ref.m, method = "RPC")$estF)
   }
-  else if (method == "nnls") {
+  else if (method=="nnls") {
     res <- t(granulator::deconvolute(m = dat, sigMatrix = as.matrix(ref_profiles), methods = method, use_cores = threads)$
                proportions$
                nnls_sig1)
@@ -140,7 +140,7 @@ do_run_sup_deconvolution <- function(method, dat, ref_profiles, threads=32) {
     res <- t(epidish(beta.m = dat, ref.m = as.matrix(ref_profiles), method = "CP")$estF)
     res[res<0]<-0
   }
-  else if (method == "InstaPrism") {
+  else if (method=="InstaPrism") {
     res <- prism.states(dat, ref_profiles, nCores = threads)
   }
   time_elapsed = toc()

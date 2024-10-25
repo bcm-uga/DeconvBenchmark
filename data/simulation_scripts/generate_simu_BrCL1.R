@@ -10,10 +10,8 @@ source("generic_functions.R")
 ## Load data using your own path
 ## ----
 print("-> Loading data...")
-T_rna <- readRDS("../references/PaCL2_rna.rds")
-T_met <- readRDS("../references/PaCL2_met.rds")
-colnames(T_rna)[2:3] = c("TUM basal","TUM classical")
-colnames(T_met)[2:3] = c("TUM basal","TUM classical")
+T_rna <- readRDS("../references/BrCL1_rna.rds")
+T_dnam <- readRDS("../references/BrCL1_dnam.rds")
 
 ## ----
 ## Fix parameters for the simulation
@@ -21,7 +19,7 @@ colnames(T_met)[2:3] = c("TUM basal","TUM classical")
 n_rep = 10
 n_samples = 120
 varCrit = 10
-alpha = c(0.01, 0.04, 0.03, 0.15, 0.46, 0.01, 0.01, 0.29)
+alpha = c(0.45, 0.1, 0.15, 0.3)
 p = .1
 
 ## ----
@@ -33,18 +31,16 @@ for (i in seq(n_rep)) {
   print(paste0("Simu n°",i))
   data_simu_clean_tot <- generate_simu_tot(alph=alpha,
                                            ref_rna=T_rna,
-                                           ref_met=T_met,
+                                           ref_dnam=T_dnam,
                                            n_samples=n_samples,
-                                           varCrit=varCrit,
-                                           dataset_pdac=T)
+                                           varCrit=varCrit)
   Amat <- data_simu_clean_tot$Amat
-  rownames(Amat)[2:3] = c("Cancer basal","Cancer classical")
   Dmat_noise <- add_noise(data_simu_clean_tot,
-                          p=p)
+                         p=p)
   saveRDS(list(D_rna_sim = Dmat_noise$Drna,
                A_ref = Amat),
-          file=paste0("../simulations/rna/",today,"_PaCL2_",sim_txt,i,".rds"))
-  saveRDS(list(D_met_sim = Dmat_noise$Dmet,
+          file=paste0("../simulations/rna/",today,"_BrCL1_",sim_txt,i,".rds"))
+  saveRDS(list(D_dnam_sim = Dmat_noise$Ddnam,
                A_ref = Amat),
-          file=paste0("../simulations/met/",today,"_PaCL2_",sim_txt,i,".rds"))
+          file=paste0("../simulations/dnam/",today,"_BrCL1_",sim_txt,i,".rds"))
 }

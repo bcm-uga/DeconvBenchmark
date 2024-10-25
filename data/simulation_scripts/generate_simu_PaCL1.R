@@ -11,7 +11,7 @@ source("generic_functions.R")
 ## ----
 print("-> Loading data...")
 T_rna <- readRDS("../references/PaCL1_rna.rds")
-T_met <- readRDS("../references/PaCL1_met.rds")
+T_dnam <- readRDS("../references/PaCL1_dnam.rds")
 
 ## ----
 ## Fix parameters for the simulation
@@ -31,7 +31,7 @@ for (i in seq(n_rep)) {
   print(paste0("Simu n°",i))
   data_simu_clean_tot <- generate_simu_tot(alph=alpha,
                                            ref_rna=T_rna,
-                                           ref_met=T_met,
+                                           ref_dnam=T_dnam,
                                            n_samples=n_samples,
                                            varCrit=varCrit,
                                            dataset_pdac=T)
@@ -41,7 +41,7 @@ for (i in seq(n_rep)) {
   saveRDS(list(D_rna_sim = Dmat_noise$Drna,
                A_ref = Amat),
           file=paste0("../simulations/rna/",today,"_PaCL1_",sim_txt,i,".rds"))
-  saveRDS(list(D_met_sim = Dmat_noise$Dmet,
+  saveRDS(list(D_dnam_sim = Dmat_noise$Ddnam,
                A_ref = Amat),
-          file=paste0("../simulations/met/",today,"_PaCL1_",sim_txt,i,".rds"))
+          file=paste0("../simulations/dnam/",today,"_PaCL1_",sim_txt,i,".rds"))
 }

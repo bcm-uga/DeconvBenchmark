@@ -27,30 +27,30 @@ generate_proportions <- function(n_samples, celltypes, alph, varCrit, dataset_pd
   return(comp_mix)
 }
 
-generate_simu_tot <- function(alph, ref_rna=NULL, ref_met=NULL, n_samples=120, varCrit=10, dataset_pdac=F) {
+generate_simu_tot <- function(alph, ref_rna=NULL, ref_dnam=NULL, n_samples=120, varCrit=10, dataset_pdac=F) {
   if (!is.null(ref_rna)) {
     celltypes <- colnames(ref_rna)
-  } else {celltypes <- colnames(ref_met)}
+  } else {celltypes <- colnames(ref_dnam)}
   Amat <- generate_proportions(n_samples, celltypes, alph, varCrit, dataset_pdac) #prop x sample
   # convolution
   if (!is.null(ref_rna)) {
     Drna <- as.matrix(ref_rna[,celltypes]) %*% Amat[celltypes,]
   }
-  if (!is.null(ref_met)) {
-    Dmet <- as.matrix(ref_met[,celltypes]) %*% Amat[celltypes,]
+  if (!is.null(ref_dnam)) {
+    Ddnam <- as.matrix(ref_dnam[,celltypes]) %*% Amat[celltypes,]
   }
   result = list()
   if (!is.null(ref_rna)) {
     result$Drna <- Drna
   }
-  if (!is.null(ref_met)) {
-    result$Dmet <- Dmet
+  if (!is.null(ref_dnam)) {
+    result$Ddnam <- Ddnam
   }
   result$Amat <- Amat[celltypes,]
   return(result)
 }
 
-add_noise <- function(result, p, sd_rna=1, sd_met=3) {
+add_noise <- function(result, p, sd_rna=1, sd_dnam=3) {
   omic = grep("D",names(result),value=T)
   result_noise = list()
   if ("Drna" %in% omic) {
@@ -59,15 +59,15 @@ add_noise <- function(result, p, sd_rna=1, sd_met=3) {
     colnames(Drna_noise)=colnames(result$Drna)
     result_noise$Drna <- Drna_noise
   }
-  if ("Dmet" %in% omic) {
-    beta_val <- result$Dmet
+  if ("Ddnam" %in% omic) {
+    beta_val <- result$Ddnam
     tmp_m <- pmax(beta_val,.Machine$double.eps)/pmax((1-beta_val),.Machine$double.eps)
-    m_val <- add_noise_gaussian(log2(tmp_m), sd_met)
-    Dmet_noise <- 2^m_val/(2^m_val+1) #probe x sample
-    Dmet_noise[Dmet_noise<0] <- beta_val[Dmet_noise<0]
-    rownames(Dmet_noise)=rownames(result$Dmet)
-    colnames(Dmet_noise)=colnames(result$Dmet)
-    result_noise$Dmet <- Dmet_noise
+    m_val <- add_noise_gaussian(log2(tmp_m), sd_dnam)
+    Ddnam_noise <- 2^m_val/(2^m_val+1) #probe x sample
+    Ddnam_noise[Ddnam_noise<0] <- beta_val[Ddnam_noise<0]
+    rownames(Ddnam_noise)=rownames(result$Ddnam)
+    colnames(Ddnam_noise)=colnames(result$Ddnam)
+    result_noise$Ddnam <- Ddnam_noise
   }
   return(result_noise)
 }

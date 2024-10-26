@@ -83,4 +83,4 @@ rule deconv_rna_unsup:
     threads: 32
     log: stdout="logs/rna_unsup_{date}_{data}_{method}_{sim}_{fs}.log", stderr="logs/rna_unsup_{date}_{data}_{method}_{sim}_{fs}.log"
     shell:
-        "apptainer exec --bind /bettik/PROJECTS/pr-epimed/amblaeli/projects:/bettik/PROJECTS/pr-epimed/amblaeli/projects container2.sif Rscript {input.script} {params. data} 'rna' {params.method} 'unsup' {params.sim} {params.date} {params.fs} {output.file_res} {output.file_time} > {log.stdout} 2> {log.stderr}"
+        "apptainer exec --bind /bettik/PROJECTS/pr-epimed/amblaeli/projects:/bettik/PROJECTS/pr-epimed/amblaeli/projects container2.sif Rscript {input.script} {params.data} 'rna' {params.method} 'unsup' {params.sim} {params.date} {params.fs} {output.file_res} {output.file_time} > {log.stdout} 2> {log.stderr}"

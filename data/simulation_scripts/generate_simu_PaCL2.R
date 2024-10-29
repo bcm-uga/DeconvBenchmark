@@ -4,7 +4,7 @@ today=format(Sys.Date(), format="%y%m%d")
 ## ----
 ## Add libs
 ## ----
-source("generic_functions.R")
+source("generic_functions_sim.R")
 
 ## ----
 ## Load data using your own path

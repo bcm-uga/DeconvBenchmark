@@ -2,7 +2,7 @@ library(dplyr)
 library(matrixStats)
 
 
-function_metrics <- function(real, prediction, method = c("rmse","mae","pearson")) {
+metrics <- function(real, prediction, method = c("rmse","mae","pearson")) {
   method <- match.arg(method)
   prediction[is.na(prediction)] = 0
   if (method=="rmse") {
@@ -33,11 +33,11 @@ compute_scores <- function (A_true, A_pred, score_methods=c("rmse", "mae", "pear
       else {stop("Error in the number of predicted cell types")}
     } else {A_pred <- A_pred[rownames(A_true), ]}
 
-    score1 <- sapply(score_methods, function(x) function_metrics(A_true, A_pred, x)) #perf_g
-    score_celltype <- sapply(seq(nrow(A_pred)), function(i) function_metrics(A_true[i,], A_pred[i,], "pearson"))
+    score1 <- sapply(score_methods, function(x) metrics(A_true, A_pred, x)) #perf_g
+    score_celltype <- sapply(seq(nrow(A_pred)), function(i) metrics(A_true[i,], A_pred[i,], "pearson"))
     score_celltype_sd <- sd(score_celltype, na.rm=T) #sd_c
     score_celltype_median <- median(score_celltype, na.rm=T) #med_c
-    score_sample <- sapply(seq(ncol(A_pred)), function(i) function_metrics(A_true[, i], A_pred[, i], "pearson"))
+    score_sample <- sapply(seq(ncol(A_pred)), function(i) metrics(A_true[, i], A_pred[, i], "pearson"))
     score_sample_sd <- sd(score_sample, na.rm=T) #sd_s
     score_sample_median <- median(score_sample, na.rm=T) #med_s
   } else {
@@ -279,7 +279,7 @@ time_SB_silico <- function(timing_path, score_path, date, n_sample=120) {
     df_class = list()
     for (meth_class in meth_classes) {
       df_class[[meth_class]] <- do.call(rbind,lapply(list.files(paste0(timing_path,block,'/', meth_class),
-                                                                pattern = glob2rx(paste0("*_timing*.rds"))),
+                                                                pattern = "CL"),
                                                      function (time_file) {
                                                        fs <- strsplit(time_file, "_")[[1]][4]
                                                        data <- strsplit(time_file, "_")[[1]][2]

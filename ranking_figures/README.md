@@ -1,3 +1,4 @@
+## Contents
 You will find here all the scripts to:
 - compute the different metrics (RMSE, MAE, Pearson correlations, time) and store them in dataframes in compute_metrics
 - reproduce the different figures of the paper (figures)

@@ -57,7 +57,7 @@ compute_scores <- function (A_true, A_pred, score_methods=c("rmse", "mae", "pear
                     "setting" = c(rep("perf_g",length(score_methods)), "sd_c", "med_c", "sd_s", "med_s")))
 }
 
-setting_SB_silico <- function(data_path, deconv_path, score_path, date, score_methods=c("rmse", "mae", "pearson"), fs_bool=TRUE) {
+score_SB_silico <- function(data_path, deconv_path, score_path, date, score_methods=c("rmse", "mae", "pearson"), fs_bool=TRUE) {
   blocks <- list.dirs(deconv_path, recursive = F, full.names = F)
   meth_classes <- list.dirs(paste0(deconv_path,blocks[1]), recursive = F, full.names = F)
   # for all blocks
@@ -75,7 +75,7 @@ setting_SB_silico <- function(data_path, deconv_path, score_path, date, score_me
         print(paste0("**  ",Data,"  **"))
         sim_files <- list.files(paste0(data_path,block), pattern = paste0(date, "_", Data))
         # for all simulations
-        df_lot <- do.call(rbind,lapply(sim_files, function(Sim_file) {
+        df_dataset <- do.call(rbind,lapply(sim_files, function(Sim_file) {
           sim <- strsplit(strsplit(Sim_file, ".rds")[[1]], "_sim")[[1]][[2]]
           A_true <- readRDS(paste0(data_path,block,"/", Sim_file))$A_ref
           # for all deconvolution methods
@@ -103,8 +103,8 @@ setting_SB_silico <- function(data_path, deconv_path, score_path, date, score_me
           df_sim$sim <- as.integer(sim)
           return(df_sim)
         }))
-        df_lot$dataset <- Data
-        return(df_lot)
+        df_dataset$dataset <- Data
+        return(df_dataset)
       }))
       df_class[[meth_class]]$class = meth_class
     }
@@ -112,12 +112,12 @@ setting_SB_silico <- function(data_path, deconv_path, score_path, date, score_me
     df_block[[block]]$block = block
   }
   score_perf_df = do.call(rbind,df_block)
-  saveRDS(score_perf_df, paste0(score_path,date, "_scores.rds"))
+  saveRDS(score_perf_df, paste0(score_path,date, "_silico_scores.rds"))
 }
 
-generate_score_SB_mean <- function(data_path, deconv_path, date, score_methods, deconv_methods) {
+score_SB_consensus <- function(data_path, deconv_path, score_path, date, deconv_methods, score_methods) {
   path_suffix = deconv_methods %>% select(Block,Supervised) %>% unique()
-  lots <- lapply(deconv_methods %>%
+  datasets <- lapply(deconv_methods %>%
                    filter(!duplicated(paste(Block,Supervised))) %>%
                    pull(Block), function(block)
     unique(sapply(list.files(paste0(data_path, block,"/")), function(file)
@@ -128,10 +128,10 @@ generate_score_SB_mean <- function(data_path, deconv_path, date, score_methods, 
     block = path_suffix$Block[path]
     class = path_suffix$Supervised[path]
     print(paste("Running setting",block,class))
-    # for all lots
-    score_perf_lot = lapply(lots[[path]], function(lot) {
-      print(paste("Running lot",lot))
-      sim_files <- list.files(paste0(data_path,block), pattern = paste0(date, "_", lot,"_sim"))
+    # for all datasets
+    score_perf_data = lapply(datasets[[path]], function(Data) {
+      print(paste("Running dataset",Data))
+      sim_files <- list.files(paste0(data_path,block), pattern = paste0(date, "_", Data,"_sim"))
       # for all simulations
       score_perf_sim <- lapply(sim_files, function(sim_file) {
         sim <- strsplit(strsplit(sim_file, ".rds")[[1]], "_sim")[[1]][[2]]
@@ -143,7 +143,7 @@ generate_score_SB_mean <- function(data_path, deconv_path, date, score_methods, 
           select(DeconvTool,FS)
         A_pred <- list()
         for (i in seq(nrow(list_meth))) {
-          A_pred[[list_meth$DeconvTool[i]]] <- readRDS(paste0(deconv_path, block, "/",class,"/", date,"/", date, "_", lot, "_Apred",list_meth$FS[i],"_", list_meth$DeconvTool[i], "_sim", sim, ".rds"))
+          A_pred[[list_meth$DeconvTool[i]]] <- readRDS(paste0(deconv_path, block, "/",class,"/", date, "_", Data, "_Apred_",list_meth$FS[i],"_", list_meth$DeconvTool[i], "_sim", sim, ".rds"))
         }
         A_pred[[length(A_pred)+1]] = Reduce("+",A_pred)/length(A_pred)
         names(A_pred) <- c(list_meth$DeconvTool,paste("Consensus",class))
@@ -157,46 +157,46 @@ generate_score_SB_mean <- function(data_path, deconv_path, date, score_methods, 
         return(df_scores)
       })
       score_perf_sim <- do.call(rbind, score_perf_sim)
-      score_perf_sim$dataset <- lot
+      score_perf_sim$dataset <- Data
       return(score_perf_sim)
       })
-    score_perf_lot <- do.call(rbind, score_perf_lot) %>%
+    score_perf_data <- do.call(rbind, score_perf_data) %>%
       mutate(score = paste(score, setting),
              block = block,
              class = class) %>%
       select(values, score, sim, dataset, candidate, block, class)
-    score_perf_lot
+    score_perf_data
   }))
-  return(score_perf_setting)
+  saveRDS(score_perf_setting, paste0(score_path,date, "_silico_scores_consensus.rds"))
 }
 
-generate_score_SB_invitro <- function(data_path, deconv_path, perf_score_path, score_methods) {
+score_SB_invitro <- function(data_path, deconv_path, score_path, score_methods) {
   blocks <- list.dirs(deconv_path, recursive = F, full.names = F)
   meth_classes <- list.dirs(paste0(deconv_path,blocks[1]), recursive = F, full.names = F)
   # for all blocks
   df_block = list()
   for (block in blocks) {
     print(paste0("block ",block))
-    lots <- list.files(data_path)
-    lots = lots[grep(block,lots)]
+    datasets <- list.files(data_path, pattern="_D_")
+    datasets = sapply(datasets[grep(block,datasets)], function(x) strsplit(x,"_")[[1]][1])
     # for all classes
     df_class = list()
     for (meth_class in meth_classes) {
       print(paste0("class ",meth_class))
       # for all datasets
-      df_class[[meth_class]] <- do.call(rbind,lapply(lots, function(Data) {
-        A_true <- readRDS(paste0(data_path,Data,"/Amat.rds"))
+      df_class[[meth_class]] <- do.call(rbind,lapply(datasets, function(Data) {
+        A_true <- readRDS(paste0(data_path,Data,"_A.rds"))
         # for all deconvolution methods
         res_files <- list.files(paste0(deconv_path,block,'/',meth_class, "/"),
-                                  pattern = strsplit(Data,"_")[[1]][1])
-        methods = unique(sapply(res_files, function(x) strsplit(strsplit(x,"_")[[1]][3],".rds")[[1]][1]))
-        df_lot <- do.call(rbind,lapply(methods, function (Method) {
+                                  pattern = Data)
+        methods = unique(sapply(res_files, function(x) strsplit(strsplit(x,"_")[[1]][4],".rds")[[1]][1]))
+        df_data <- do.call(rbind,lapply(methods, function (Method) {
           # for all feature selection strategies, if applicable
           print(Method)
-          fs = c("none","toast","hvf")
+          fs = unique(sapply(res_files, function(x) strsplit(x,"_")[[1]][3]))
           df_meth <- do.call(rbind,lapply(fs, function(i) {
             res_file = res_files[intersect(grep(i,res_files),
-                                             grep(paste0(Method,".rds"),res_files))]
+                                           grep(paste0(Method,".rds"),res_files))]
             A_pred <- readRDS(paste0(deconv_path,block,'/', meth_class, "/", res_file))
             df_fs <- compute_scores(A_true, A_pred, score_methods)
             df_fs$feat_selec <- i
@@ -205,8 +205,8 @@ generate_score_SB_invitro <- function(data_path, deconv_path, perf_score_path, s
           df_meth$deconv <- Method
           return(df_meth)
         }))
-        df_lot$dataset <- Data
-        return(df_lot)
+        df_data$dataset <- Data
+        return(df_data)
       }))
       df_class[[meth_class]]$class = meth_class
     }
@@ -214,38 +214,38 @@ generate_score_SB_invitro <- function(data_path, deconv_path, perf_score_path, s
     df_block[[block]]$block = block
   }
   score_perf_df = do.call(rbind,df_block)
-  saveRDS(score_perf_df, paste0(perf_score_path, "scores.rds"))
+  saveRDS(score_perf_df, paste0(score_path, "vitro_scores.rds"))
 }
 
-generate_score_SB_invivo <- function(data_path, deconv_path, perf_score_path, score_methods) {
+score_SB_invivo <- function(data_path, deconv_path, score_path, score_methods) {
   blocks <- list.dirs(deconv_path, recursive = F, full.names = F)
   meth_classes <- list.dirs(paste0(deconv_path,blocks[1]), recursive = F, full.names = F)
   # for all blocks
   df_block = list()
   for (block in blocks) {
     print(paste0("block ",block))
-    lots <- list.files(data_path)
-    lots = lots[grep(block,lots)]
+    datasets <- list.files(data_path, pattern="_D_")
+    datasets = sapply(datasets[grep(block,datasets)], function(x) strsplit(x,"_")[[1]][1])
     # for all classes
     df_class = list()
     for (meth_class in meth_classes) {
       print(paste0("class ",meth_class))
       # for all datasets
-      df_class[[meth_class]] <- do.call(rbind,lapply(lots, function(Data) {
-        A_true <- readRDS(paste0(data_path,Data,"/Amat.rds"))
+      df_class[[meth_class]] <- do.call(rbind,lapply(datasets, function(Data) {
+        A_true <- readRDS(paste0(data_path,Data,"_A.rds"))
         # for all deconvolution methods
         res_files <- list.files(paste0(deconv_path,block,'/',meth_class, "/"),
-                                pattern = strsplit(Data,"_")[[1]][1])
-        methods = unique(sapply(res_files, function(x) strsplit(strsplit(x,"_")[[1]][3],".rds")[[1]][1]))
-        df_lot <- do.call(rbind,lapply(methods, function (Method) {
+                                pattern = Data)
+        methods = unique(sapply(res_files, function(x) strsplit(strsplit(x,"_")[[1]][4],".rds")[[1]][1]))
+        df_dataset <- do.call(rbind,lapply(methods, function (Method) {
           # for all feature selection strategies, if applicable
           print(Method)
-          fs = c("none","toast","hvf")
+          fs = unique(sapply(res_files, function(x) strsplit(x,"_")[[1]][3]))
           df_meth <- do.call(rbind,lapply(fs, function(i) {
             res_file = res_files[intersect(grep(i,res_files),
                                            grep(paste0(Method,".rds"),res_files))]
             A_pred <- readRDS(paste0(deconv_path,block,'/', meth_class, "/", res_file))
-            if (Data=="SkREAL_rna" & meth_class=="sup") {
+            if (Data=="SkREAL" & meth_class=="sup") {
               OtherCells = colSums(A_pred[grep("Other",rownames(A_pred)),])
               A_pred = rbind(A_pred[-grep("Other",rownames(A_pred)),],
                              OtherCells)
@@ -257,8 +257,8 @@ generate_score_SB_invivo <- function(data_path, deconv_path, perf_score_path, sc
           df_meth$deconv <- Method
           return(df_meth)
         }))
-        df_lot$dataset <- Data
-        return(df_lot)
+        df_dataset$dataset <- Data
+        return(df_dataset)
       }))
       df_class[[meth_class]]$class = meth_class
     }
@@ -266,10 +266,10 @@ generate_score_SB_invivo <- function(data_path, deconv_path, perf_score_path, sc
     df_block[[block]]$block = block
   }
   score_perf_df = do.call(rbind,df_block)
-  saveRDS(score_perf_df, paste0(perf_score_path, "scores.rds"))
+  saveRDS(score_perf_df, paste0(score_path, "vivo_scores.rds"))
 }
 
-generate_time_SB_silico <- function(timing_path, perf_score_path, date) {
+time_SB_silico <- function(timing_path, score_path, date, n_sample=120) {
   blocks <- list.dirs(timing_path, recursive = FALSE, full.names = FALSE)
   meth_classes <- list.dirs(paste0(timing_path,blocks[1]), recursive = FALSE, full.names = FALSE)
   # for all blocks
@@ -278,24 +278,22 @@ generate_time_SB_silico <- function(timing_path, perf_score_path, date) {
     # for all classes
     df_class = list()
     for (meth_class in meth_classes) {
-      df_class[[meth_class]] <- do.call(rbind,lapply(list.files(paste0(timing_path,block,'/', meth_class,"/",date),
+      df_class[[meth_class]] <- do.call(rbind,lapply(list.files(paste0(timing_path,block,'/', meth_class),
                                                                 pattern = glob2rx(paste0("*_timing*.rds"))),
                                                      function (time_file) {
-                                                       suffix <- tail(strsplit(strsplit(time_file, "_")[[1]][3], "timing")[[1]], 1)
-                                                       lot <- strsplit(time_file, "_")[[1]][2]
+                                                       fs <- strsplit(time_file, "_")[[1]][4]
+                                                       data <- strsplit(time_file, "_")[[1]][2]
                                                        sim <- as.numeric(strsplit(strsplit(time_file, "_sim")[[1]][2], ".rds")[[1]][1])
-                                                       meth <- strsplit(time_file, "_")[[1]][4]
-                                                       time <- readRDS(paste0(timing_path,block,'/', meth_class, "/", date, "/", time_file))
-                                                       if (length(grep("LessSamples",date))==0) {
-                                                         time = time/120
-                                                       } else {time = time/30}
+                                                       method <- strsplit(time_file, "_")[[1]][5]
+                                                       time <- readRDS(paste0(timing_path,block,'/', meth_class, "/", time_file))
+                                                       time = time/n_sample
                                                        if (is.null(time)) time <- NA
                                                        res_df <- data.frame("values" = time,
                                                                             "score" = "time",
-                                                                            "deconv" = meth,
-                                                                            "dataset" = lot,
+                                                                            "deconv" = method,
+                                                                            "dataset" = data,
                                                                             "sim" = sim,
-                                                                            "feat_selec" = suffix)
+                                                                            "feat_selec" = fs)
                                                        return(res_df)
                                                      }))
       df_class[[meth_class]]$class = meth_class
@@ -303,26 +301,24 @@ generate_time_SB_silico <- function(timing_path, perf_score_path, date) {
     df_block[[block]] = do.call(rbind,df_class)
     df_block[[block]]$block = block
   }
-  file_path <- paste0(perf_score_path, date, "_time.rds")
-  saveRDS(do.call(rbind,df_block), file_path)
+  saveRDS(do.call(rbind,df_block), paste0(score_path, date, "_silico_time.rds"))
 }
 
-generate_time_SB_mean <- function(data_path, timing_path, date, deconv_methods) {
+time_SB_consensus <- function(data_path, timing_path, score_path, date, deconv_methods, n_sample=120) {
   path_suffix = deconv_methods %>% select(Block,Supervised) %>% unique()
-  lots <- lapply(deconv_methods %>%
+  datasets <- lapply(deconv_methods %>%
                    filter(!duplicated(paste(Block,Supervised))) %>%
                    pull(Block), function(block)
                      unique(sapply(list.files(paste0(data_path, block,"/")), function(file)
                        strsplit(file,"_")[[1]][2])))
-  
   # for all path_suffixes
   time_setting <- do.call(rbind,lapply(seq(nrow(path_suffix)), function (path) {
     block = path_suffix$Block[path]
     class = path_suffix$Supervised[path]
     print(paste("Running setting",block,class))
-    # for all lots
-    time_lot = do.call(rbind,lapply(lots[[path]], function(lot) {
-      sim_files <- list.files(paste0(data_path,block), pattern = paste0(date, "_", lot,"_sim"))
+    # for all datasets
+    time_dataset = do.call(rbind,lapply(datasets[[path]], function(Data) {
+      sim_files <- list.files(paste0(data_path,block), pattern = paste0(date, "_", Data,"_sim"))
       # for all simulations
       time_sim <- lapply(sim_files, function(sim_file) {
         sim <- strsplit(strsplit(sim_file, ".rds")[[1]], "_sim")[[1]][[2]]
@@ -333,28 +329,26 @@ generate_time_SB_mean <- function(data_path, timing_path, date, deconv_methods) 
           select(DeconvTool,FS)
         time_res = rep(NA,nrow(list_meth)+1)
         for (i in seq(nrow(list_meth))) {
-          time_res[i] <- readRDS(paste0(timing_path, block, "/",class,"/", date,"/", date, "_", lot, "_timing",list_meth$FS[i],"_", list_meth$DeconvTool[i], "_sim", sim, ".rds"))
+          time_res[i] <- readRDS(paste0(timing_path, block, "/",class,"/", date, "_", Data, "_timing_",list_meth$FS[i],"_", list_meth$DeconvTool[i], "_sim", sim, ".rds"))
         }
         time_res[length(time_res)] = sum(time_res[seq(length(time_res)-1)])
-        if (length(grep("LessSamples",date))==0) {
-          time_res = time_res/120
-        } else {time_res = time_res/30}
+        time_res = time_res/n_sample
         data.frame(values=time_res,
                    score='time time',
                    sim=as.numeric(sim),
-                   dataset=lot,
+                   dataset=Data,
                    candidate=c(list_meth$DeconvTool,paste0("Consensus ",class)))
       })
       return(do.call(rbind,time_sim))
     }))
-    time_lot$block=block
-    time_lot$class=class
-    time_lot
+    time_dataset$block=block
+    time_dataset$class=class
+    time_dataset
   }))
-  return(time_setting)
+  saveRDS(time_setting, paste0(score_path, date, "_silico_time_consensus.rds"))
 }
 
-generate_time_invitro <- function(timing_path, perf_score_path, input_data_path="data/") {
+time_SB_invitro <- function(timing_path, score_path) {
   blocks <- list.dirs(timing_path, recursive = FALSE, full.names = FALSE)
   meth_classes <- list.dirs(paste0(timing_path,blocks[1]), recursive = FALSE, full.names = FALSE)
   # for all blocks
@@ -364,34 +358,32 @@ generate_time_invitro <- function(timing_path, perf_score_path, input_data_path=
     df_class = list()
     for (meth_class in meth_classes) {
       df_class[[meth_class]] <- do.call(rbind,lapply(list.files(paste0(timing_path, block, "/", meth_class),
-                                                                pattern = glob2rx(paste0("*_timing*.rds"))),
+                                                                pattern='MIX'),
                                                      function (time_file) {
-                                                       suffix <- strsplit(strsplit(time_file, "timing")[[1]][2],"_")[[1]][1]
-                                                       lot <- strsplit(time_file, "_")[[1]][1]
-                                                       lot <- grep(lot,list.files(input_data_path), value=T)
-                                                       meth <- strsplit(strsplit(time_file, "_")[[1]][3], ".rds")[[1]][1]
+                                                       fs <- strsplit(time_file, "_")[[1]][3]
+                                                       data <- strsplit(time_file, "_")[[1]][1]
+                                                       meth <- strsplit(strsplit(time_file, "_")[[1]][4], ".rds")[[1]][1]
                                                        time <- readRDS(paste0(timing_path, block, "/", meth_class, "/", time_file))
-                                                       n_sample = ifelse(lot=="BlMIX_met",12,
-                                                                         ifelse(lot=="PaMIX_met_rna",30,
-                                                                                ifelse(lot=="BrMIX_rna",18,warning("issue with lot"))))
+                                                       n_sample = ifelse(data=="BlMIX",12,
+                                                                         ifelse(data=="PaMIX",30,
+                                                                                ifelse(data=="BrMIX",18,warning("You should specify the number of samples of your dataset."))))
                                                        time = time/n_sample
                                                        if (is.null(time)) time <- NA
                                                        return(data.frame(values = time,
                                                                          score = "time",
                                                                          deconv = meth,
-                                                                         dataset = lot,
-                                                                         feat_selec = suffix,
+                                                                         dataset = data,
+                                                                         feat_selec = fs,
                                                                          class=meth_class))
                                                      }))
     }
     df_block[[block]] = do.call(rbind,df_class)
     df_block[[block]]$block = block
   }
-  file_path <- paste0(perf_score_path, "time.rds")
-  saveRDS(do.call(rbind,df_block), file_path)
+  saveRDS(do.call(rbind,df_block), paste0(score_path, "vitro_time.rds"))
 }
 
-generate_time_invivo <- function(timing_path, perf_score_path) {
+time_SB_invivo <- function(timing_path, score_path) {
   blocks <- list.dirs(timing_path, recursive = FALSE, full.names = FALSE)
   meth_classes <- list.dirs(paste0(timing_path,blocks[1]), recursive = FALSE, full.names = FALSE)
   # for all blocks
@@ -401,30 +393,29 @@ generate_time_invivo <- function(timing_path, perf_score_path) {
     df_class = list()
     for (meth_class in meth_classes) {
       df_class[[meth_class]] <- do.call(rbind,lapply(list.files(paste0(timing_path, block, "/", meth_class),
-                                                                pattern = glob2rx(paste0("*_timing*.rds"))),
+                                                                pattern='REAL'),
                                                      function (time_file) {
-                                                       suffix <- strsplit(strsplit(time_file, "timing")[[1]][2],"_")[[1]][1]
-                                                       lot <- strsplit(time_file, "_")[[1]][1]
-                                                       lot <- grep(lot,list.files("data/"), value=T)
-                                                       meth <- strsplit(strsplit(time_file, "_")[[1]][3], ".rds")[[1]][1]
+                                                       fs <- strsplit(time_file, "_")[[1]][3]
+                                                       data <- strsplit(time_file, "_")[[1]][1]
+                                                       meth <- strsplit(strsplit(time_file, "_")[[1]][4], ".rds")[[1]][1]
                                                        time <- readRDS(paste0(timing_path, block, "/", meth_class, "/", time_file))
-                                                       n_sample = ifelse(lot=="BlREAL1_rna",5,
-                                                                         ifelse(lot=="BlREAL2_met",12,
-                                                                                ifelse(lot=="BlREAL3_met",335,
-                                                                                       ifelse(lot=="SkREAL_rna",4,warning("issue with lot")))))
+                                                       n_sample = ifelse(data=="BlREAL1",5,
+                                                                         ifelse(data=="BlREAL2",12,
+                                                                                ifelse(data=="BlREAL3",335,
+                                                                                       ifelse(data=="SkREAL",4,
+                                                                                              warning("You should specify the number of samples of your dataset.")))))
                                                        time = time/n_sample
                                                        if (is.null(time)) time <- NA
                                                        return(data.frame(values = time,
                                                                          score = "time",
                                                                          deconv = meth,
-                                                                         dataset = lot,
-                                                                         feat_selec = suffix,
+                                                                         dataset = data,
+                                                                         feat_selec = fs,
                                                                          class=meth_class))
                                                      }))
     }
     df_block[[block]] = do.call(rbind,df_class)
     df_block[[block]]$block = block
   }
-  file_path <- paste0(perf_score_path, "time.rds")
-  saveRDS(do.call(rbind,df_block), file_path)
+  saveRDS(do.call(rbind,df_block), paste0(score_path, "vivo_time.rds"))
 }

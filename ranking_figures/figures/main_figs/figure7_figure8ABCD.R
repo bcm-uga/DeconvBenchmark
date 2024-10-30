@@ -1,5 +1,28 @@
 ## ----
-## Set parameters
+## Set parameters, put your own
+## ----
+score_path = "../../compute_metrics/scores/"
+date = '241025'
+folder = strsplit(basename(rstudioapi::getSourceEditorContext()$path),".R")[[1]]
+source("../generic_functions/ranking_process.R")
+source("../generic_functions/load_scores_SB_silico.R")
+source("../generic_functions/load_scores_SB_invitro.R")
+source("../generic_functions/load_scores_SB_invivo.R")
+
+meth_rna_sup = c("DeconRNASeq", "nnls", "ols","svr","CIBERSORT", "elasticnet", "rlr","WISP", "InstaPrism", "fardeep", "fardeepsto")
+meth_rna_unsup = c("ICA", "NMF", "PREDE", "debCAM", "CDSeq")
+meth_dnam_sup = c("rlr","CIBERSORT", "epidishCP","InstaPrism","nnls")
+meth_dnam_unsup = c("RefFreeEWAS", "ICA", "EDec", "MeDeCom", "NMF","debCAM")
+
+custom_palette <- c("#D11141", "#F47F43", "#FFA500", "#FFD700", 
+                    "#C0C0C0", "#808080", "darkolivegreen3", "darkolivegreen", 
+                    "#76958F", "lightblue3", "#4682B4", "#005F6B")
+
+scores_to_keep = c("rmse perf_g", "mae perf_g", "pearson perf_g", "pearson med_c", "pearson med_s", "pearson perf_mean",
+                   "time time")
+
+## ----
+## Load libraries
 ## ----
 library(dplyr)
 library(funkyheatmap)
@@ -8,31 +31,27 @@ library(ggplot2)
 library(ggtext)
 library(ggpubr)
 library(see)
-source("../../src/2_ranking_ranking_procedure_functions.R")
-folder = strsplit(basename(rstudioapi::getSourceEditorContext()$path),".R")[[1]]
-scores_to_keep = c("rmse perf_g", "mae perf_g", "pearson perf_g", "pearson med_c", "pearson med_s", "pearson perf_mean",
-        "time time")
-custom_palette <- c("#D11141", "#F47F43", "#FFA500", "#FFD700", 
-                    "#C0C0C0", "#808080", "darkolivegreen3", "darkolivegreen", 
-                    "#76958F", "lightblue3", "#4682B4", "#005F6B")
+library(fmsb)
+
+## ----
+## Functions
+## ----
 scale_col_fun = function(x) {
   if (x%in%c(2,4)) {
-    scale_color_metro(reverse=T)
+    scale_color_metro(reverse=T) # colors for unsupervised panels
   }
-  else if (x==3) {scale_color_manual(values=custom_palette)}
-  else if (x==1) {scale_color_manual(values=custom_palette[c(1,4,7,10,12)])}
+  else if (x==1) {scale_color_manual(values=custom_palette[c(1,4,7,10,12)])} # colors for the supervised DNAm panel
+  else if (x==3) {scale_color_manual(values=custom_palette)} # colors for the supervised RNA panel
 }
 
 ## ----
 ## Load scores
 ## ----
-source("../../src/load_scores_SB_invitro.R")
-res = load_data()
+res = load_data_vitro(score_path)
 scores_vitro = res$scores
 time_vitro = res$time
 rm(res)
-source("../../src/load_scores_SB_invivo.R")
-res = load_data()
+res = load_data_vivo(score_path)
 scores_vivo = res$scores
 time_vivo = res$time
 rm(res)
@@ -40,11 +59,9 @@ rm(res)
 ## ----
 ## Scores inter and ranks
 ## ----
-source("../../src/2_ranking_ranking_procedure_functions.R")
-
 ranks_vitro = ranking_consensus(scores1=scores_vitro, scores2=time_vitro, scores_to_keep=scores_to_keep)
 ranks_vivo = ranking_consensus(scores1=scores_vivo, scores2=time_vivo, scores_to_keep=scores_to_keep)
-res_fig2 = readRDS("fig2/df_res.rds")
+res_fig2 = readRDS("figure2_CD_figure3_CD/df_res.rds")
 ranks = lapply(res_fig2, function(x)
   rbind(ranks_vitro %>% filter(candidate %in% unique(x$candidate)) %>%
     mutate(DeconvTool=sapply(candidate, function(x) strsplit(x,"-")[[1]][2]),
@@ -137,13 +154,13 @@ saveRDS(score_inter, paste0(folder,'/score_inter.rds'))
 
 
 ranks = mapply(function(x,y) {
-  x %>% mutate(Setting=paste0(sub("met","DNAm",
+  x %>% mutate(Setting=paste0(sub("dnam","DNAm",
                                   sub("rna","RNA",
                                       sub("unSupervised","Unsupervised",
                                           sub("sup","Supervised",strsplit(y,'-')[[1]])))),collapse='\n'))
 }, x=ranks,y=names(ranks),SIMPLIFY = F)
 score_inter = mapply(function(x,y) {
-  x %>% mutate(Setting=paste0(sub("met","DNAm",
+  x %>% mutate(Setting=paste0(sub("dnam","DNAm",
                                   sub("rna","RNA",
                                       sub("unSupervised","Unsupervised",
                                           sub("sup","Supervised",strsplit(y,'-')[[1]])))),collapse='\n'))
@@ -208,7 +225,7 @@ mean_overall = lapply(ranks_filter, function(x) {
 })
 
 ## ----
-## Plot table for methods that ran on ALL datasets for BOTH in vitro/in vivo sources
+## Plot rank tables for methods that ran on ALL datasets for BOTH in vitro/in vivo sources (figure 7)
 ## ----
 max_show = sapply(mean_overall, function(x) max(x$`In silico`, na.rm=T))
 plot_table = lapply(mean_overall, function(data)
@@ -234,12 +251,12 @@ names(plot_table) = names(ranks)
 heights = c(2,2,4,2)
 for (p in seq_along(plot_table)) {
   print(plot_table[[p]])
-  ggsave(paste0(folder,"/table_global_ranks_",names(plot_table)[p],".pdf"), height=heights[p], width=5)
+  ggsave(paste0(folder,"/fig7_table_global_ranks_",names(plot_table)[p],".pdf"), height=heights[p], width=5)
 }
 
 ## ----
-## Plot boxplot for methods that ran on ALL datasets for BOTH in vitro/in vivo sources
-## Plot scatterplot for all methods
+## Plot scatterplot for methods that ran on ALL datasets for BOTH in vitro/in vivo sources (figure 7)
+## Plot scatterplot for all methods (supp figure 9)
 ## ----
 ranks_filter = lapply(seq_along(ranks_filter), function(x) {
   ranks_filter[[x]]$DeconvTool = factor(ranks_filter[[x]]$DeconvTool, levels=rownames(mean_overall[[x]]))
@@ -264,7 +281,6 @@ ggarrange(plotlist = mapply(function(x,xbis) {
     geom_line(aes(group=DeconvTool, color=DeconvTool), linetype='dotted') +
     scale_col_fun(xbis) +
     xlab("") +
-    #ggtitle(unique(x$Setting)) +
     ylab(ifelse(xbis%in%c(2,4),"","Overall\n benchmark score")) +
     theme_modern(axis.title.size = 18,
                  legend.title.size = 18,
@@ -272,7 +288,7 @@ ggarrange(plotlist = mapply(function(x,xbis) {
   if (xbis==4) {p = p + scale_color_manual(values=palette_metro(reverse = T)(5)[1:2])}
   p},
   x=ranks_filter,xbis=seq_along(ranks_filter), SIMPLIFY = F))
-ggsave(paste0(folder,"/boxplot.pdf"), width=12,height=8)
+ggsave(paste0(folder,"/fig7_scatterplot.pdf"), width=12,height=8)
 
 jitterVal <- lapply(score_inter, function(x)
   seq(from=-.4,to=.4,length.out=length(levels(x$DeconvTool)))[as.integer(x$DeconvTool)])
@@ -288,17 +304,15 @@ ggarrange(plotlist = lapply(seq_along(score_inter), function(x)
     scale_x_continuous(breaks=unique(sort(as.numeric(score_inter[[x]]$Source))),
                      labels=levels(score_inter[[x]]$Source)) +
     ylab("Overall benchmark score") +
-    #ggtitle(unique(score_inter[[x]]$Setting)) +
     theme_modern(axis.title.size = 18,
                  legend.title.size = 18,
                  legend.text.size = 18)))
-ggsave(paste0(folder,"/scatterplot.pdf"), width=12,height=8)
+ggsave("../supp_figs/supp9/scatterplot.pdf", width=12,height=8)
 
 ## ----
-## Prep spiderplots
+## Prep spiderplots for figure 8
 ## ----
-source("../../src/load_scores_SB.R")
-scores_norm_silico = ranking_norm(load_data("231027")$scores,load_data("231027")$time)
+scores_norm_silico = ranking_norm(load_data(date, score_path)$scores,load_data(date, score_path)$time)
 scores_norm_vitro = ranking_norm(scores_vitro,time_vitro)
 scores_norm_vivo = ranking_norm(scores_vivo,time_vivo)
 scores_norm = rbind(scores_norm_silico,scores_norm_vitro,scores_norm_vivo)
@@ -326,26 +340,9 @@ spiderlist1 = lapply(scores_norm, function(setting) {
   })
   names(res)=unique(setting$candidate)
   res})
-spiderlist2 = lapply(scores_norm, function(setting) {
-  res = lapply(unique(setting$name_score), function(y) {
-    tmp = setting %>% filter(name_score==y)
-    df = plyr::join_all(lapply(unique(tmp$candidate), function(tool)
-      data.frame(tmp %>% filter(candidate==tool) %>%
-                   group_by(dataset) %>%
-                   summarise(trendval=median(trendval, na.rm=T)) %>%
-                   rename(!!tool:=trendval) %>% 
-                   ungroup() %>% arrange(dataset))),
-      by=c('dataset'), type='full')
-    rownames(df) = df$dataset
-    rbind(rep(1,ncol(df)-1),
-          rep(0,ncol(df)-1),
-          df %>% select(!dataset))
-  })
-  names(res)=unique(setting$name_score)
-  res})
 
-dataset_list = list('met'=rownames(spiderlist1$`met-sup`$`met-CIBERSORT-toast`),
-                    'rna'=rownames(spiderlist1$`rna-sup`$`rna-CIBERSORT-toast`))
+dataset_list = list('dnam'=rownames(spiderlist1$`dnam-sup`[[1]]),
+                    'rna'=rownames(spiderlist1$`rna-sup`[[1]]))
 dataset_silico = lapply(dataset_list, function(x) grep("CL",x)-2)
 dataset_vitro = lapply(dataset_list, function(x) grep("MIX",x)-2)
 dataset_vivo = lapply(dataset_list, function(x) grep("REAL",x)-2)
@@ -358,10 +355,8 @@ for (i in seq_along(colors_in)) {
 
 
 ## ----
-## Plot spiderplots
+## Plot spiderplots (figure 8 panels A,B,C,D)
 ## ----
-library(fmsb)
-
 dev.off()
 lapply(seq_along(spiderlist1), function(setting)
   lapply(seq_along(spiderlist1[[setting]]), function(method) {
@@ -370,7 +365,7 @@ lapply(seq_along(spiderlist1), function(setting)
     colnames(data) = c('RMSE','Time','Pearson_s (sd)','Pearson_c (sd)', 'Pearson_s', 'Pearson_c','Pearson_m','MAE')
     legends = sapply(rownames(spiderlist1[[setting]][[method]][-c(1,2),]), function(x)
       strsplit(strsplit(x,"_")[[1]][1],"-")[[1]][1])
-    pdf(file = paste0(folder,"/spider_method/",names(spiderlist1)[setting],"/",names(spiderlist1[[setting]])[method],".pdf"),
+    pdf(file = paste0(folder,"/fig8/",names(spiderlist1)[setting],"/",names(spiderlist1[[setting]])[method],".pdf"),
         width = 8)
     par(mar = c(1, 1, 1, 1))
     radarchart(data,
@@ -381,31 +376,6 @@ lapply(seq_along(spiderlist1), function(setting)
     legend(x=1.1, y=1.1,
            legend = legends[c(grep("CL",legends),grep("MIX",legends),grep("REAL",legends))],
            bty = "n", pch=20 , col=colors_in[[block]][c(grep("CL",legends),grep("MIX",legends),grep("REAL",legends))], text.col = "black",
-           cex=1, pt.cex=1, x.intersp=.8, y.intersp=.8)
-    dev.off()
-  }))
-lapply(seq_along(spiderlist2), function(setting)
-  lapply(seq_along(spiderlist2[[setting]]), function(namescore) {
-    legends = rownames(spiderlist2[[setting]][[namescore]][-c(1,2),])
-    plot_obj = spiderlist2[[setting]][[namescore]]
-    plot_obj = plot_obj[,gsub('-','.',res_fig2[[setting]] %>%
-                          select(candidate,overall) %>%
-                          arrange(desc(overall)) %>%
-                          pull(candidate) %>% unique())]
-    plot_obj = plot_obj[,c(1,rev(seq(2,ncol(plot_obj))))]
-    png(filename = paste0(folder,"/spider_metric/",
-                          names(spiderlist2)[setting],"/",
-                          names(spiderlist2[[setting]])[namescore],".png"),
-        width = 580)
-    par(mar = c(2, 3, 3, 2))
-    radarchart(plot_obj,
-               axistype=0, seg=5, pcol=colors_in , plwd=4 , plty=1,
-               cglcol="grey", cglty=1, axislabcol="grey",
-               caxislabels=seq(0,20,5), cglwd=0.8,
-               vlcex=0.8 )
-    legend(x=1.1, y=1.1,
-           legend = legends[c(grep("CL",legends),grep("MIX",legends),grep("REAL",legends))],
-           bty="n", pch=20 , col=colors_in[c(grep("CL",legends),grep("MIX",legends),grep("REAL",legends))], text.col = "black",
            cex=1, pt.cex=1, x.intersp=.8, y.intersp=.8)
     dev.off()
   }))

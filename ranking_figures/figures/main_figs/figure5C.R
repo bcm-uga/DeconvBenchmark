@@ -2,6 +2,9 @@
 ## Set parameters, put your own
 ## ----
 score_path = "../../compute_metrics/scores/"
+source("../generic_functions/load_scores_SB_missing.R")
+source("../generic_functions/load_scores_SB_silico.R")
+source("../generic_functions/ranking_process.R")
 folder = strsplit(basename(rstudioapi::getSourceEditorContext()$path),".R")[[1]]
 
 meth_rna_sup = c("DeconRNASeq", "nnls", "ols","svr","CIBERSORT", "elasticnet", "rlr","WISP", "InstaPrism", "fardeep", "fardeepsto")
@@ -23,18 +26,16 @@ library(see)
 ## ----
 ## Load scores & rank
 ## ----
-source("../generic_functions/load_scores_SB_missing.R")
 df_scores = list()
 df_time = list()
 for (experiment in c('241025_missing','241025_added')) {
-  res = load_data(experiment, score_path)
+  res = load_data_missing(experiment, score_path)
   scores = res$scores
   time = res$time
   rm(res)
   df_scores[[experiment]] = scores
   df_time[[experiment]] = time
 }
-source("../generic_functions/load_scores_SB_silico.R")
 res = load_data("241025", score_path)
 df_scores[["baseline"]] = res$scores %>% mutate(candidate=paste(candidate,"baseline",sep = "-"))
 df_time[["baseline"]] = res$time %>% mutate(candidate=paste(candidate,"baseline",sep = "-"))
@@ -42,8 +43,8 @@ rm(res,
    scores,time)
 
 # each setting is ranked independently
-bestFS = unlist(lapply(readRDS("figure2_CD_figure3_CD/df_res.rds"), function(x) x %>% pull(candidate) %>% unique()))
-winners = readRDS("figure2_CD_figure3_CD/df_res.rds")
+bestFS = unlist(lapply(readRDS("figure2CD_figure3CD/df_res.rds"), function(x) x %>% pull(candidate) %>% unique()))
+winners = readRDS("figure2CD_figure3CD/df_res.rds")
 winners = lapply(winners[grep('-sup',names(winners))], function(x) x %>% 
                    arrange(desc(overall)) %>% 
                    mutate(DeconvTool = case_when(DeconvTool=='nnls'~'NNLS',
@@ -56,7 +57,6 @@ winners = lapply(winners[grep('-sup',names(winners))], function(x) x %>%
                    pull(DeconvTool) %>% 
                    unique())
 
-source("../generic_functions/ranking_process.R")
 rank_consensus = lapply(seq_along(df_scores), function(x)
   ranking_consensus(df_scores[[x]],df_time[[x]]))
 rank_consensus = do.call(rbind,rank_consensus)
@@ -85,7 +85,7 @@ rank_consensus = rank_consensus %>%
                                 DeconvTool=='svr'~'SVR', .default = DeconvTool))
 
 ## ----
-## Plot scatter
+## Plot scatter figure 5 panel C
 ## ----
 rank_consensus$NCellTypes = factor(rank_consensus$NCellTypes, levels=c("-1Type","AllTypes","+1Type"))
 rank_consensus$DeconvTool = factor(rank_consensus$DeconvTool, levels=unique(c(winners$`rna-sup`, winners$`dnam-sup`)))

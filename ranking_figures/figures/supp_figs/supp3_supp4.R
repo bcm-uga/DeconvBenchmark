@@ -1,21 +1,62 @@
 ## ----
-## Set parameters
+## Set parameters, put your own
+## ----
+date = "241025"
+score_path = "../../compute_metrics/scores/"
+source("../generic_functions/load_scores_SB_silico.R")
+source("../generic_functions/ranking_process.R")
+folder = strsplit(basename(rstudioapi::getSourceEditorContext()$path),".R")[[1]]
+
+meth_rna_sup = c("DeconRNASeq", "nnls", "ols","svr","CIBERSORT", "elasticnet", "rlr","WISP", "InstaPrism", "fardeep", "fardeepsto")
+meth_rna_unsup = c("ICA", "NMF", "PREDE", "debCAM", "CDSeq")
+meth_dnam_sup = c("rlr","CIBERSORT", "epidishCP","InstaPrism","nnls")
+meth_dnam_unsup = c("RefFreeEWAS", "ICA", "EDec", "MeDeCom", "NMF","debCAM")
+
+## ----
+## Load libraries
 ## ----
 library(dplyr)
-library(funkyheatmap)
-library(tibble)
 library(ggplot2)
 library(ggtext)
 library(ggpubr)
 library(see)
-folder = strsplit(basename(rstudioapi::getSourceEditorContext()$path),".R")[[1]]
-date = "231027"
+
+## ----
+## Function
+## ----
+plotting_function = function(df, y, ylab) {
+  ggplot(df, aes(x=x.label, y=get(y), fill=FS)) +
+    facet_grid(~facet, labeller = labeller(facet=facet.labs), scales = "free_x", space = "free_x") +
+    geom_bar(stat='identity', position='dodge') +
+    scale_fill_viridis_d() +
+    ylab(ylab) +
+    xlab("") +
+    geom_text(aes(label=Best_FS, group=FS, y=get(y) + .005), col='red', position=position_dodge(.85)) +
+    theme_classic(base_size = 11, base_family = "") +
+    theme(plot.title = element_text(size = 15, face = "plain", margin = margin(0, 0, 20, 0)),
+          plot.title.position = "plot", 
+          legend.position = "right",
+          legend.text = element_text(size = 12), 
+          legend.title = element_text(size = 13),
+          legend.key = element_blank(), 
+          legend.spacing.x = unit(2, "pt"),
+          axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0)),
+          axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 0, l = 0)),
+          axis.text.x = element_markdown(colour="red",
+                                         angle = 45, 
+                                         hjust = 1),
+          axis.text = element_text(size = 12),
+          axis.ticks = element_blank(),
+          axis.title = element_text(size = 13, face = "plain"),
+          plot.tag = element_text(size = 15, face = "bold"), 
+          strip.background = element_blank(),
+          strip.text = element_text(face = "bold"))
+}
 
 ## ----
 ## Load scores
 ## ----
-source("../../src/load_scores_SB.R")
-res = load_data(date)
+res = load_data(date, score_path)
 scores = res$scores
 time = res$time
 rm(res)
@@ -23,7 +64,6 @@ rm(res)
 ## ----
 ## Ranks and per dataset
 ## ----
-source("../../src/2_ranking_ranking_procedure_functions.R")
 ranks = ranking_consensus(scores1=scores, scores2=time)
 
 # dataset scoring
@@ -79,45 +119,16 @@ best_FS_per_tool_datasets = score_datasets %>%
 levelz = unique(sapply(best_FS_per_tool$Setting, function(x) strsplit(x,"-")[[1]][2]))
 levelz = c(levelz[seq(which(levelz=='NMF')-1)],
            "MeDeCom",
-           levelz[setdiff(seq(which(levelz=='NMF'),length(levelz)),which(levelz=="MeDeCom"))])
+           levelz[setdiff(seq(which(levelz=='NMF'),length(levelz)),which(levelz=="MeDeCom"))]) #manual reordering
 
 ## ----
-## Plot barplot
+## Plot barplot (supp figure 3)
 ## ----
-plotting_function = function(df, y, ylab) {
-  ggplot(df, aes(x=x.label, y=get(y), fill=FS)) +
-    facet_grid(~facet, labeller = labeller(facet=facet.labs), scales = "free_x", space = "free_x") +
-    geom_bar(stat='identity', position='dodge') +
-    scale_fill_viridis_d() +
-    ylab(ylab) +
-    xlab("") +
-    geom_text(aes(label=Best_FS, group=FS, y=get(y) + .005), col='red', position=position_dodge(.85)) +
-    theme_classic(base_size = 11, base_family = "") +
-    theme(plot.title = element_text(size = 15, face = "plain", margin = margin(0, 0, 20, 0)),
-          plot.title.position = "plot", 
-          legend.position = "right",
-          legend.text = element_text(size = 12), 
-          legend.title = element_text(size = 13),
-          legend.key = element_blank(), 
-          legend.spacing.x = unit(2, "pt"),
-          axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0)),
-          axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 0, l = 0)),
-          axis.text.x = element_markdown(colour="red",
-                                         angle = 45, 
-                                         hjust = 1),
-          axis.text = element_text(size = 12),
-          axis.ticks = element_blank(),
-          axis.title = element_text(size = 13, face = "plain"),
-          plot.tag = element_text(size = 15, face = "bold"), 
-          strip.background = element_blank(),
-          strip.text = element_text(face = "bold"))
-}
-
 df <- ranks %>%
   mutate(Block=sapply(candidate, function(x) strsplit(x,"-")[[1]][1]),
          DeconvTool=sapply(candidate, function(x) strsplit(x,"-")[[1]][2]),
          FS=sapply(candidate, function(x) strsplit(x,"-")[[1]][3]),
-         Supervised = ifelse(DeconvTool %in% c(meth_met_unsup,meth_rna_unsup),"No","Yes"),
+         Supervised = ifelse(DeconvTool %in% c(meth_dnam_unsup,meth_rna_unsup),"No","Yes"),
          facet = paste(Block, Supervised)) %>%
   group_by(paste(Block,DeconvTool)) %>%
   arrange(desc(overall)) %>%
@@ -129,7 +140,7 @@ df_datasets <- lapply(unique(score_datasets$Setting), function(dataXblock)
            Block = sapply(Setting,function(x) strsplit(x," ")[[1]][1]),
            FS = sapply(candidate,function(x) strsplit(x,"-")[[1]][3]),
            DeconvTool=sapply(candidate, function(x) strsplit(x,"-")[[1]][2]),
-           Supervised = ifelse(DeconvTool %in% c(meth_met_unsup,meth_rna_unsup),"No","Yes"),
+           Supervised = ifelse(DeconvTool %in% c(meth_dnam_unsup,meth_rna_unsup),"No","Yes"),
            facet = paste(Block, Supervised),
            Setting = paste(Dataset,Block)) %>%
     select(candidate, aggregated, Dataset, Block, FS, DeconvTool, Supervised, Setting, facet) %>%
@@ -184,27 +195,20 @@ df$x.label = factor(df$x.label,
                     levels=c(sapply(levels(df$DeconvTool), function(x)
                       sapply(c("#440154","#21918c","#d7c202"), function(y)
                         paste0("<span style = 'color: ",y,";'>",x,"</span>")))))
-df$facet = factor(df$facet, levels=c('met Yes','met No','rna Yes','rna No'))
-
-plotting_function(df, 'overall', "Overall benchmark score")
-ggsave(paste0(folder,"/all.pdf"), width = 12, height = 3.5)
-plotting_function(df %>% filter(Block=='rna'), 'overall', "Overall benchmark score")
-ggsave(paste0(folder,"/rna.pdf"), width = 10, height = 3.5)
-plotting_function(df %>% filter(Block=='met'), 'overall', "Overall benchmark score")
-ggsave(paste0(folder,"/met.pdf"), width = 8, height = 3.7)
+df$facet = factor(df$facet, levels=c('dnam Yes','dnam No','rna Yes','rna No'))
 
 df_datasets_rna = do.call(rbind,df_datasets) %>% filter(Block=='rna')
-df_datasets_met = do.call(rbind,df_datasets) %>% filter(Block=='met')
+df_datasets_dnam = do.call(rbind,df_datasets) %>% filter(Block=='dnam')
 df_datasets_rna$x.label = factor(df_datasets_rna$x.label,
                                  levels=c(sapply(levels(df_datasets_rna$DeconvTool), function(x)
                                    sapply(c("#440154","#21918c","#d7c202"), function(y)
                                      paste0("<span style = 'color: ",y,";'>",x,"</span>")))))
-df_datasets_met$x.label = factor(df_datasets_met$x.label,
-                                 levels=c(sapply(levels(df_datasets_met$DeconvTool), function(x)
+df_datasets_dnam$x.label = factor(df_datasets_dnam$x.label,
+                                 levels=c(sapply(levels(df_datasets_dnam$DeconvTool), function(x)
                                    sapply(c("#440154","#21918c","#d7c202"), function(y)
                                      paste0("<span style = 'color: ",y,";'>",x,"</span>")))))
-df_datasets_rna$facet = factor(df_datasets_rna$facet, levels=c('met Yes','met No','rna Yes','rna No'))
-df_datasets_met$facet = factor(df_datasets_met$facet, levels=c('met Yes','met No','rna Yes','rna No'))
+df_datasets_rna$facet = factor(df_datasets_rna$facet, levels=c('dnam Yes','dnam No','rna Yes','rna No'))
+df_datasets_dnam$facet = factor(df_datasets_dnam$facet, levels=c('dnam Yes','dnam No','rna Yes','rna No'))
 
 plot_datasets_rna = list()
 for (x in seq_along(unique(df_datasets_rna$Dataset))) {
@@ -218,33 +222,33 @@ for (x in seq_along(unique(df_datasets_rna$Dataset))) {
 }
 plot_datasets_rna[["Overall"]] = plotting_function(df %>% filter(Block=='rna'), 'overall', "Overall benchmark score")
 
-plot_datasets_met = list()
-for (x in seq_along(unique(df_datasets_met$Dataset))) {
+plot_datasets_dnam = list()
+for (x in seq_along(unique(df_datasets_dnam$Dataset))) {
   if (x%in%c(1,4)) {
-    plot_datasets_met[[unique(df_datasets_met$Dataset)[x]]] = plotting_function(df_datasets_met %>% filter(Dataset==unique(df_datasets_met$Dataset)[x]),
+    plot_datasets_dnam[[unique(df_datasets_dnam$Dataset)[x]]] = plotting_function(df_datasets_dnam %>% filter(Dataset==unique(df_datasets_dnam$Dataset)[x]),
                                                                                   'aggregated',
                                                                                   "Aggregated benchmark score")
-  } else {plot_datasets_met[[unique(df_datasets_met$Dataset)[x]]] = plotting_function(df_datasets_met %>% filter(Dataset==unique(df_datasets_met$Dataset)[x]),
+  } else {plot_datasets_dnam[[unique(df_datasets_dnam$Dataset)[x]]] = plotting_function(df_datasets_dnam %>% filter(Dataset==unique(df_datasets_dnam$Dataset)[x]),
                                                                                         'aggregated',
                                                                                         "")}
 }
-plot_datasets_met[["Overall"]] = plotting_function(df %>% filter(Block=='met'), 'overall', "Overall benchmark score")
+plot_datasets_dnam[["Overall"]] = plotting_function(df %>% filter(Block=='dnam'), 'overall', "Overall benchmark score")
 
+ggarrange(plotlist = plot_datasets_dnam,
+          common.legend = T,
+          labels = c(sapply(unique(df_datasets_dnam$Dataset), function(x) strsplit(x,"-")[[1]][1]),"Overall"))
+ggsave(paste0(folder,"/supp3_panelA.pdf"), width = 13, height = 8)
 ggarrange(plotlist = plot_datasets_rna,
           common.legend = T,
           labels = c(sapply(unique(df_datasets_rna$Dataset), function(x) strsplit(x,"-")[[1]][1]),"Overall"))
-ggsave(paste0(folder,"/datasets_rna.pdf"), width = 13, height = 8)
-ggarrange(plotlist = plot_datasets_met,
-          common.legend = T,
-          labels = c(sapply(unique(df_datasets_met$Dataset), function(x) strsplit(x,"-")[[1]][1]),"Overall"))
-ggsave(paste0(folder,"/datasets_met.pdf"), width = 13, height = 8)
+ggsave(paste0(folder,"/supp3_panelB.pdf"), width = 13, height = 8)
 
 ## ----
-## Plot categories
+## Plot categories (supp figure 4)
 ## ----
-settings = list(meth_met_sup,meth_met_unsup,
+settings = list(meth_dnam_sup,meth_dnam_unsup,
                 meth_rna_sup,meth_rna_unsup)
-names(settings) = rep(c('met','rna'),each=2)
+names(settings) = rep(c('dnam','rna'),each=2)
 df_cat = lapply(seq_along(settings), function(x)
   ranking_step1(scores1=scores, scores2=time) %>% ungroup() %>%
     coerce_pearson() %>%
@@ -261,11 +265,9 @@ df_cat = lapply(seq_along(settings), function(x)
     filter(DeconvTool %in% settings[[x]],
            Block %in% names(settings)[x],
            FS!='none') %>%
-    filter(candidate %in% best_FS_per_tool$candidate[-grep("none",best_FS_per_tool$candidate)])# %>%
-    #group_by(candidate,name_score,DeconvTool,FS) %>%
-    #summarise(trendval_diff_mean = mean(trendval_diff, na.rm = T))
+    filter(candidate %in% best_FS_per_tool$candidate[-grep("none",best_FS_per_tool$candidate)])
   )
-names(df_cat) = c("met-sup","met-unsup","rna-sup","rna-unsup")
+names(df_cat) = c("dnam-sup","dnam-unsup","rna-sup","rna-unsup")
 df_cat = lapply(df_cat, function(x) {
   x$FS = factor(gsub("hvf","Highly variable features",
               gsub("toast","TOAST",x$FS)),levels=c("TOAST","Highly variable features"))
@@ -289,6 +291,6 @@ for (i in seq_along(df_cat)) {
     xlab("") +
     guides(color='none') +
     theme_modern(axis.text.angle = 80)
-  ggsave(paste0(folder,"/mean_atomic_scores_",names(df_cat)[i],".pdf"), width=8, height=heights[i], device = cairo_pdf)
+  ggsave(paste0(folder,"/supp4_",names(df_cat)[i],".pdf"), width=8, height=heights[i], device = cairo_pdf)
 }
 

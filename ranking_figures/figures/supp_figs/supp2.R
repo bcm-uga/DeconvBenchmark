@@ -1,16 +1,9 @@
 ## ----
-## Set parameters
+## Set parameters, put your own
 ## ----
-library(dplyr)
-library(tibble)
-library(ggplot2)
-library(ggpubr)
-library(see)
-folder = strsplit(basename(rstudioapi::getSourceEditorContext()$path),".R")[[1]]
-date = "231027"
-
-source("../../src/2_ranking_ranking_procedure_functions.R")
-rank_process=c("Sconsensus","Sraw","Stopsis","Srank")
+source("../generic_functions/ranking_process.R")
+source("../generic_functions/ranking_criteria.R")
+rank_process = c("Sconsensus","Sraw","Stopsis","Srank")
 ranking_process=c(ranking_consensus,ranking_raw,ranking_topsis,ranking_avgrank)
 ranking_process_end=c(ranking_consensus_end,ranking_raw_end,ranking_topsis_end,ranking_avgrank_end)
 names(ranking_process_end) = rank_process
@@ -23,17 +16,34 @@ ranking_score = lapply(c("a","b"), function(x) {
 })
 names(ranking_score) = c("a","b")
 
+date = "241025"
+score_path = "../../compute_metrics/scores/"
+source("../generic_functions/load_scores_SB_silico.R")
+folder = strsplit(basename(rstudioapi::getSourceEditorContext()$path),".R")[[1]]
+
+meth_rna_sup = c("DeconRNASeq", "nnls", "ols","svr","CIBERSORT", "elasticnet", "rlr","WISP", "InstaPrism", "fardeep", "fardeepsto")
+meth_rna_unsup = c("ICA", "NMF", "PREDE", "debCAM", "CDSeq")
+meth_dnam_sup = c("rlr","CIBERSORT", "epidishCP","InstaPrism","nnls")
+meth_dnam_unsup = c("RefFreeEWAS", "ICA", "EDec", "MeDeCom", "NMF","debCAM")
+
+## ----
+## Load libraries
+## ----
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+library(see)
+
 ## ----
 ## Load scores
 ## ----
-source("../../src/load_scores_SB.R")
-res = load_data(date)
+res = load_data(date, score_path)
 scores = res$scores
 time = res$time
 rm(res)
-settings = list(meth_met_sup,meth_met_unsup,
+settings = list(meth_dnam_sup,meth_dnam_unsup,
               meth_rna_sup,meth_rna_unsup)
-names(settings) = c('met-sup','met-unsup','rna-sup','rna-unsup')
+names(settings) = c('dnam-sup','dnam-unsup','rna-sup','rna-unsup')
 
 scores_merged_norm = mapply(function(setting,block) {
   ranking_step1(scores, time) %>% coerce_pearson() %>%
@@ -41,16 +51,15 @@ scores_merged_norm = mapply(function(setting,block) {
            Block = sapply(candidate, function(x) strsplit(x,"-")[[1]][1]),
            Setting=paste(Block,DeconvTool,sep="-")) %>%
     filter(Setting %in% paste(block,setting,sep='-'))},
-  settings, rep(c("met","rna"),each=2), SIMPLIFY=F)
+  settings, rep(c("dnam","rna"),each=2), SIMPLIFY=F)
 
-bestFS = unlist(lapply(readRDS("../fig/fig2/df_res.rds"), function(df) df$candidate))
+bestFS = unlist(lapply(readRDS("../main_figs/figure2CD_figure3CD/df_res.rds"), function(df) df$candidate))
 scores_merged_norm = lapply(scores_merged_norm, function(x)
   x %>% filter(candidate %in% bestFS))
 
 ## ----
 ## Rank
 ## ----
-source("../../src/2_ranking_ranking_procedure_functions.R")
 ranks = lapply(seq_along(settings), function(blockXclass)
   lapply(ranking_process, function(process)
     lapply(ranking_score, function(scoreskeep)
@@ -70,7 +79,7 @@ ranks = do.call(rbind,lapply(ranks, function(rk_setting)
                DeconvTool = sapply(candidate, function(y) strsplit(y, "-")[[1]][2]),
                Candidate = paste(DeconvTool,FS,sep='-'),
                Process = rank_process[rk_process],
-               Supervised = ifelse(DeconvTool %in% c(meth_met_sup,meth_rna_sup),'Supervised','Unsupervised'),
+               Supervised = ifelse(DeconvTool %in% c(meth_dnam_sup,meth_rna_sup),'Supervised','Unsupervised'),
                sup = ifelse(Supervised=='Supervised','sup','unsup'))))
     ))
   )) %>%
@@ -113,7 +122,7 @@ rank_order = lapply(rank_order, function(x) {
 })
 
 ## ----
-## Plot table to compare rankings
+## Plot table to compare rankings (supp figure 2 panels A,B,C,D)
 ## ----
 plot_table = lapply(rank_order, function(data)
   ggtexttable(data,
@@ -133,8 +142,6 @@ for (k in seq_along(plot_table)) {
                           color = 'grey90')
       }}
     }
-    #if (abs(rank_order[[k]][i-1,1]-rank_order[[k]][i-1,2])>5) {plot_table[[k]] <- plot_table[[k]] %>% table_cell_font(row = i, column = c(2,3), face="bold", color="firebrick3", size=7)}
-    #if (abs(rank_order[[k]][i-1,1]-rank_order[[k]][i-1,3])>5) {plot_table[[k]] <- plot_table[[k]] %>% table_cell_font(row = i, column = 4, face="bold", color="steelblue3", size=7)}
   }
 }
 
@@ -144,12 +151,11 @@ for (p in seq_along(plot_table)) {
   ggsave(paste0(folder,"/table_compa_ranks_",names(plot_table)[p],".pdf"), height=heights[p], width=11)
 }
 rm(i,j,k,p,bestFS,heights,max_show,
-   meth_met_sup,meth_met_unsup,meth_rna_sup,meth_rna_unsup)
+   meth_dnam_sup,meth_dnam_unsup,meth_rna_sup,meth_rna_unsup)
 
 ## ----
 ## Prepare Pavao
 ## ----
-source("../../src/2_ranking_pavao_criteria_functions.R")
 mat_trendval <- lapply(scores_merged_norm, function(df)
   df %>%
     ungroup() %>%
@@ -194,14 +200,14 @@ for (setting in names(scores_merged_norm)) {
 }
 
 ## ----
-## Plot Pavao
+## Plot Pavao criteria (supp figure 2 panels E,F)
 ## ----
 df_pavao = do.call(rbind,lapply(names(df_pavao), function(x)
   df_pavao[[x]] %>%
     mutate("Ranking process"=paste(Process,Scores_selec,sep="_"),
            Setting=x)))
-df_pavao$Setting <- gsub("met-sup","DNAm - Supervised",
-                         gsub("met-unsup","DNAm - Unsupervised",
+df_pavao$Setting <- gsub("dnam-sup","DNAm - Supervised",
+                         gsub("dnam-unsup","DNAm - Unsupervised",
                               gsub("rna-sup","RNA - Supervised",
                                    gsub("rna-unsup","RNA - Unsupervised",
                                         df_pavao$Setting))))
@@ -215,17 +221,7 @@ ggplot(df_pavao, aes(x=`Ranking process`, y=Value)) +
   scale_color_manual(values=c("#F39C12","#E74C3C","#2980B9","#B86F7F")) +
   ylab("Criterion value") +
   theme_modern(axis.text.angle = 30)
-ggsave(paste0(folder,"/pavao.pdf"), width=12, height=4)
-ggplot(df_pavao %>% filter(Scores_selec=="A",Criterion=="Generalization criterion") %>%
-         mutate(rp=`Ranking process`,
-                `Ranking process`=sapply(rp, function(x) strsplit(as.character(x),'_')[[1]][1])),
-       aes(x=`Ranking process`, y=Value)) +
-  geom_point(aes(color=Setting)) +
-  geom_boxplot(alpha=0) +
-  scale_color_manual(values=c("#F39C12","#E74C3C","#2980B9","#B86F7F")) +
-  ylab("Criterion value") +
-  theme_modern(axis.text.angle = 30)
-ggsave(paste0(folder,"/pavao_jobim.pdf"), width=8, height=4)
+ggsave(paste0(folder,"/panelE.pdf"), width=12, height=4)
 
 dot = lapply(c("A","B"), function(x) {
   tmp=c("RMSE", "MAE", "Pearson",
@@ -258,5 +254,5 @@ ggplot(df_dot, aes(x=X,y=Y)) +
   xlab("") +
   theme_modern() +
   scale_color_manual(values=c("#477CBD","#B54893","#E8B658"))
-ggsave(paste0(folder,"/scoretype_dotplot.pdf"), width=5, height=3)
+ggsave(paste0(folder,"/panelF.pdf"), width=5, height=3)
   

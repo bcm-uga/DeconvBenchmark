@@ -1,36 +1,48 @@
 ## ----
-## Set parameters
+## Set parameters, put your own
+## ----
+ref_path = "../../../data/references/"
+dataset_rna = c('BrCL1','BrCL2','BlCL','PaCL1','PaCL2','BrMIX','PaMIX','BlREAL1','SkREAL')
+dataset_dnam = c('BrCL1','LuCL','PaCL1','PaCL2','BlMIX','PaMIX','BlREAL2','BlREAL3')
+folder = strsplit(basename(rstudioapi::getSourceEditorContext()$path),".R")[[1]]
+
+## ----
+## Load libraries
 ## ----
 library(dplyr)
-library(ComplexHeatmap)
 library(circlize)
-folder = strsplit(basename(rstudioapi::getSourceEditorContext()$path),".R")[[1]]
+library(ComplexHeatmap)
 
 ## ----
 ## Load RNA reference profiles
 ## ----
 # silico
-lots_silico = list.files("../0simu/simulations/rna",
-                         pattern=glob2rx(paste0("231027", "*ref.rds")))
-names_silico = sapply(lots_silico, function(x)
-  strsplit(x,"_")[[1]][2])
-names_silico_CL = gsub("Cobos","BrCL2",
-                       gsub("Hoek","BlCL",
-                            gsub("dBREAST","BrCL1",
-                                 gsub("lot1","PaCL2",
-                                 gsub("dPANCREAS","PaCL1",names_silico)))))
-data_silico = sapply(lots_silico, function(x) readRDS(paste0("../0simu/simulations/rna/",x)))
+names_silico = grep("CL", dataset_rna, value = T)
+data_silico = sapply(names_silico, function(x)
+  paste0(ref_path,list.files(ref_path,pattern=x)))
+data_silico = lapply(data_silico, function(x) {
+  if (length(x)==1) {readRDS(x)}
+  else {readRDS(grep("rna",x,value=T))}
+})
 
 # vitro
-lots_vitro = list.files("../1SB_invitro/data/", pattern='rna')
-names_vitro = c("Cobos23","cometh_lot1/transcriptome")
-data_vitro = sapply(names_vitro, function(x) readRDS(paste0("../../../datashare/",x,"/T_raw.rds")))
+names_vitro = grep("MIX", dataset_rna, value = T)
+data_vitro = sapply(names_vitro, function(x)
+  paste0(ref_path,list.files(ref_path,pattern=x)))
+data_vitro = lapply(data_vitro, function(x) {
+  if (length(x)==1) {readRDS(x)}
+  else {readRDS(grep("rna",x,value=T))}
+})
 
 # vivo
-lots_vivo = list.files("../1SB_invivo/data/", pattern='rna')
-names_vivo = c("Deconer23/Linsley","Sturm19/Racle")
-data_vivo = sapply(names_vivo, function(x) readRDS(paste0("../../../datashare/",x,"/T_rna_norm.rds")))
-  
+names_vivo = grep("REAL", dataset_rna, value = T)
+data_vivo = sapply(names_vivo, function(x)
+  paste0(ref_path,list.files(ref_path,pattern=x)))
+data_vivo = lapply(data_vivo, function(x) {
+  if (length(x)==1) {readRDS(x)}
+  else {readRDS(grep("rna",x,value=T))}
+})  
+
 ## ----
 ## Compute RNA charac
 ## ----
@@ -50,62 +62,64 @@ charac_rna = data.frame("nFeatures" = sapply(data_all_rna, nrow),
                                       rep("vivo",length(data_vivo))))
 # Technology info is not critical as all in silico are Illumina
 
-rownames(charac_rna) = c(names_silico_CL,
-                         sapply(lots_vitro,function(x) strsplit(x,"_")[[1]][1]),
-                         sapply(lots_vivo,function(x) strsplit(x,"_")[[1]][1]))
+rownames(charac_rna) = c(names_silico,names_vitro,names_vivo)
 saveRDS(charac_rna,paste0(folder,"/charac_rna.rds"))
 
 ## ----
 ## Load DNAm reference profiles
 ## ----
 # silico
-lots_silico = list.files("../0simu/simulations/met",
-                         pattern=glob2rx(paste0("231027", "*ref.rds")))
-names_silico = sapply(lots_silico, function(x)
-  strsplit(x,"_")[[1]][2])
-names_silico_CL = gsub("He","LuCL",
-                       gsub("dBREAST","BrCL1",
-                            gsub("lot1","PaCL2",
-                                 gsub("dPANCREAS","PaCL1",names_silico))))
-data_silico = sapply(lots_silico, function(x) readRDS(paste0("../0simu/simulations/met/",x)))
+names_silico = grep("CL", dataset_dnam, value = T)
+data_silico = sapply(names_silico, function(x)
+  paste0(ref_path,list.files(ref_path,pattern=x)))
+data_silico = lapply(data_silico, function(x) {
+  if (length(x)==1) {readRDS(x)}
+  else {readRDS(grep("dnam",x,value=T))}
+})
 
 # vitro
-lots_vitro = list.files("../1SB_invitro/data/", pattern='met')
-names_vitro = c("Koestler16","cometh_lot1/methylation")
-data_vitro = sapply(names_vitro, function(x) readRDS(paste0("../../../datashare/",x,"/T_met_norm.rds")))
+names_vitro = grep("MIX", dataset_dnam, value = T)
+data_vitro = sapply(names_vitro, function(x)
+  paste0(ref_path,list.files(ref_path,pattern=x)))
+data_vitro = lapply(data_vitro, function(x) {
+  if (length(x)==1) {readRDS(x)}
+  else {readRDS(grep("dnam",x,value=T))}
+})
 
 # vivo
-lots_vivo = list.files("../1SB_invivo/data/", pattern='met')
-names_vivo = c("Teschendorff17/Reinius","Teschendorff17/Liu")
-data_vivo = sapply(names_vivo, function(x) readRDS(paste0("../../../datashare/",x,"/T_met_norm.rds")))
+names_vivo = grep("REAL", dataset_dnam, value = T)
+data_vivo = sapply(names_vivo, function(x)
+  paste0(ref_path,list.files(ref_path,pattern=x)))
+data_vivo = lapply(data_vivo, function(x) {
+  if (length(x)==1) {readRDS(x)}
+  else {readRDS(grep("dnam",x,value=T))}
+})  
 
 ## ----
 ## Compute DNAm charac
 ## ----
-data_all_met = c(data_silico,data_vitro,data_vivo)
-charac_met = data.frame("nFeatures" = sapply(data_all_met, nrow),
-                        "nCellTypes" = sapply(data_all_met, ncol),
-                        "Mean R2" = pbapply::pbsapply(data_all_met, function(x) {
+data_all_dnam = c(data_silico,data_vitro,data_vivo)
+charac_dnam = data.frame("nFeatures" = sapply(data_all_dnam, nrow),
+                        "nCellTypes" = sapply(data_all_dnam, ncol),
+                        "Mean R2" = pbapply::pbsapply(data_all_dnam, function(x) {
                           mean(sapply(seq(ncol(x)-1), function(y)
                             mean(sapply(seq(y+1,ncol(x)), function(z) cor(x[,y],x[,z])))))}),
-                        "Phenotypic volume" = sapply(data_all_met, function(x) {
+                        "Phenotypic volume" = sapply(data_all_dnam, function(x) {
                           eign = eigen(cov(t(x[TOAST::findRefinx(as.matrix(x), nmarker=ncol(x)-1),])), symmetric = T, only.values = T)$values
                           log(prod(eign[eign!=0])/(ncol(x)-1))
                         }),
-                        "Kurtosis" = sapply(data_all_met, function(x) mean(apply(x,2,moments::kurtosis))),
+                        "Kurtosis" = pbapply::pbsapply(data_all_dnam, function(x) mean(apply(x,2,moments::kurtosis))),
                         "data_type" = c(rep("silico",length(data_silico)),
                                         rep("vitro",length(data_vitro)),
                                         rep("vivo",length(data_vivo))),
                         "Technology"=c('EPIC','800k','450k','800k',
                                        '450k','800k',
                                        '450k','450k'))
-rownames(charac_met) = c(names_silico_CL,
-                         sapply(lots_vitro,function(x) strsplit(x,"_")[[1]][1]),
-                         sapply(lots_vivo,function(x) strsplit(x,"_")[[1]][1]))
-saveRDS(charac_met,paste0(folder,"/charac_met.rds"))
+rownames(charac_dnam) = c(names_silico,names_vitro,names_vivo)
+saveRDS(charac_dnam,paste0(folder,"/charac_dnam.rds"))
 
 ## ----
-## Plot RNA heatmap
+## Plot RNA heatmap (supp figure 11 panel B)
 ## ----
 col_fun_rna = sapply(seq(ncol(charac_rna)-1),function(x)
   colorRamp2(seq(from=min(charac_rna[,x]),
@@ -159,71 +173,71 @@ draw(ht_rna[[1]]+ht_rna[[2]]+ht_rna[[3]]+ht_rna[[4]]+ht_rna[[5]],
 dev.off()
 
 ## ----
-## Plot DNAm heatmap
+## Plot DNAm heatmap (supp figure 11 panel A)
 ## ----
-col_fun_met = sapply(seq(ncol(charac_met)-2),function(x)
-  colorRamp2(seq(from=min(charac_met[,x]),
-                 to=max(charac_met[,x]),
+col_fun_dnam = sapply(seq(ncol(charac_dnam)-2),function(x)
+  colorRamp2(seq(from=min(charac_dnam[,x]),
+                 to=max(charac_dnam[,x]),
                  length.out=9), RColorBrewer::brewer.pal(name="Purples",n=9)))
-names(col_fun_met) = colnames(charac_met)[seq(ncol(charac_met)-2)]
+names(col_fun_dnam) = colnames(charac_dnam)[seq(ncol(charac_dnam)-2)]
 
-names_ht_met = c("nFeatures","nCellTypes","Mean R2","Phenotypic volume","Kurtosis","Technology")
-thd_met = c(6e5,8,.9,-35)
-ht_met = list(Heatmap(charac_met %>% select(nFeatures),
-                      col = col_fun_met$nFeatures,
+names_ht_dnam = c("nFeatures","nCellTypes","Mean R2","Phenotypic volume","Kurtosis","Technology")
+thd_dnam = c(6e5,8,.9,-35)
+ht_dnam = list(Heatmap(charac_dnam %>% select(nFeatures),
+                      col = col_fun_dnam$nFeatures,
                       name = "nFeatures",
                       cluster_rows = FALSE,
                       cluster_columns = FALSE,
                       row_names_side = "left",
-                      row_split = charac_met$data_type,
+                      row_split = charac_dnam$data_type,
                       row_title = c("in silico"," in vitro","in vivo"),
                       row_title_gp = gpar(fontface='EUC', fontsize=10, fontfamily='HersheySerif',fill=c("firebrick","navy","green4"),col=c("black","grey90","black")),
-                      row_order = c(order(rownames(charac_met)[charac_met$data_type=="silico"]),
-                                    order(rownames(charac_met)[charac_met$data_type=="vitro"])+sum(charac_met$data_type=="silico"),
-                                    order(rownames(charac_met)[charac_met$data_type=="vivo"])+sum(charac_met$data_type%in%c("silico","vitro"))),
+                      row_order = c(order(rownames(charac_dnam)[charac_dnam$data_type=="silico"]),
+                                    order(rownames(charac_dnam)[charac_dnam$data_type=="vitro"])+sum(charac_dnam$data_type=="silico"),
+                                    order(rownames(charac_dnam)[charac_dnam$data_type=="vivo"])+sum(charac_dnam$data_type%in%c("silico","vitro"))),
                       column_names_side = 'bottom',
                       border = T,
                       cell_fun = function(j, i, x, y, width, height, fill) {
-                        grid.text(round(charac_met[i,j],3), x, y,
-                                  gp=gpar(col=ifelse(round(charac_met[i,j],3)>thd_met[1],
+                        grid.text(round(charac_dnam[i,j],3), x, y,
+                                  gp=gpar(col=ifelse(round(charac_dnam[i,j],3)>thd_dnam[1],
                                                      'white','black')))
                       },))
-ht_met = c(ht_met,lapply(seq(2,ncol(charac_met)-2), function(column)
-  Heatmap(charac_met %>% select(colnames(charac_met)[column]),
-          col = col_fun_met[[column]],
-          name = names_ht_met[column],
+ht_dnam = c(ht_dnam,lapply(seq(2,ncol(charac_dnam)-2), function(column)
+  Heatmap(charac_dnam %>% select(colnames(charac_dnam)[column]),
+          col = col_fun_dnam[[column]],
+          name = names_ht_dnam[column],
           cluster_rows = FALSE,
           cluster_columns = FALSE,
-          row_order = c(order(rownames(charac_met)[charac_met$data_type=="silico"]),
-                        order(rownames(charac_met)[charac_met$data_type=="vitro"])+sum(charac_met$data_type=="silico"),
-                        order(rownames(charac_met)[charac_met$data_type=="vivo"])+sum(charac_met$data_type%in%c("silico","vitro"))),
+          row_order = c(order(rownames(charac_dnam)[charac_dnam$data_type=="silico"]),
+                        order(rownames(charac_dnam)[charac_dnam$data_type=="vitro"])+sum(charac_dnam$data_type=="silico"),
+                        order(rownames(charac_dnam)[charac_dnam$data_type=="vivo"])+sum(charac_dnam$data_type%in%c("silico","vitro"))),
           row_names_gp = gpar(fontsize=0),
           column_names_side = 'bottom',
-          row_split = charac_met$data_type,
+          row_split = charac_dnam$data_type,
           border = T,
           cell_fun = function(j, i, x, y, width, height, fill) {
-            grid.text(round(charac_met[i,column],3), x, y,
-                      gp=gpar(col=ifelse(round(charac_met[i,column],3)>thd_met[column],
+            grid.text(round(charac_dnam[i,column],3), x, y,
+                      gp=gpar(col=ifelse(round(charac_dnam[i,column],3)>thd_dnam[column],
                                          'white','black')))
           },)))
-ht_met = c(ht_met,
-           Heatmap(charac_met %>% select(Technology),
+ht_dnam = c(ht_dnam,
+           Heatmap(charac_dnam %>% select(Technology),
                    col = c("#DBDBDB","#6DC0E0","#92673C"),
                    name = "Technology",
                    cluster_rows = FALSE,
                    cluster_columns = FALSE,
-                   row_split = charac_met$data_type,
-                   row_order = c(order(rownames(charac_met)[charac_met$data_type=="silico"]),
-                                 order(rownames(charac_met)[charac_met$data_type=="vitro"])+sum(charac_met$data_type=="silico"),
-                                 order(rownames(charac_met)[charac_met$data_type=="vivo"])+sum(charac_met$data_type%in%c("silico","vitro"))),
+                   row_split = charac_dnam$data_type,
+                   row_order = c(order(rownames(charac_dnam)[charac_dnam$data_type=="silico"]),
+                                 order(rownames(charac_dnam)[charac_dnam$data_type=="vitro"])+sum(charac_dnam$data_type=="silico"),
+                                 order(rownames(charac_dnam)[charac_dnam$data_type=="vivo"])+sum(charac_dnam$data_type%in%c("silico","vitro"))),
                    row_names_gp = gpar(fontsize=0),
                    column_names_side = 'bottom',
                    border = T,
                    cell_fun = function(j, i, x, y, width, height, fill) {
-                     grid.text(charac_met[i,7], x, y)
+                     grid.text(charac_dnam[i,7], x, y)
                    },))
 pdf(paste0(folder,"/dnam.pdf"))
-draw(ht_met[[1]]+ht_met[[2]]+ht_met[[3]]+ht_met[[4]]+ht_met[[6]],
+draw(ht_dnam[[1]]+ht_dnam[[2]]+ht_dnam[[3]]+ht_dnam[[4]]+ht_dnam[[6]],
      column_title = "DNAm data",
      column_title_gp = gpar(fontsize = 16))
 dev.off()

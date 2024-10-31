@@ -1,50 +1,28 @@
-source("../../src/1_generate_score.R")
-source("../../src/1_generate_time.R")
-source("../../src/2_ranking_ranking_procedure_functions.R")
-
 ## ----
-## Set parameters
+## Set parameters, put your own
 ## ----
-library(ggplot2)
-library(see)
+date = "241025"
+score_path = "../../compute_metrics/scores/"
+n_candidates = 2
+source("../generic_functions/ranking_process.R")
 folder = strsplit(basename(rstudioapi::getSourceEditorContext()$path),".R")[[1]]
-date = "231027"
-n_candidates=2
+
 custom_palette <- c("#D11141", "#F47F43", "#FFA500", "#FFD700", 
                     "#C0C0C0", "#808080", "darkolivegreen3", "darkolivegreen", 
                     "#76958F", "lightblue3", "#4682B4", "#005F6B")
 
 ## ----
-## Prep for consensus deconv scores
+## Load libraries
 ## ----
-source("../../src/load_scores_SB.R")
-# res from fig2
-res_fig2 = readRDS("../fig/fig2/df_res.rds")
-deconv_methods = do.call(rbind,lapply(res_fig2, function(x)
-  x %>% ungroup() %>% arrange(desc(overall)) %>%
-    filter(!duplicated(candidate)) %>%
-    top_n(n_candidates,overall) %>%
-    mutate(FS=sapply(candidate, function(y) strsplit(y,'-')[[1]][3]),
-           Block=sapply(candidate, function(y) strsplit(y,'-')[[1]][1]),
-           Supervised=ifelse(DeconvTool%in%c(meth_met_sup,meth_rna_sup),'sup','unsup')) %>%
-    select(DeconvTool,FS,Block,Supervised)))
+library(dplyr)
+library(ggplot2)
+library(see)
 
 ## ----
-## Consensus deconv scores and time
+## Load consensus deconv scores and time
 ## ----
-input_path <- "../0simu/simulations/"
-deconv_path <- "../1SB/deconv/"
-timing_path <- "../1SB/timing/"
-date <- "231027"
-score_methods <- c("rmse", "mae", "pearson")
-if (!file.exists(paste0(folder,"/scores.rds"))) {
-  scores = generate_score_SB_mean(input_path, deconv_path, date, score_methods, deconv_methods)
-  saveRDS(scores, paste0(folder,"/scores.rds"))
-} else {scores = readRDS(paste0(folder,"/scores.rds"))}
-if (!file.exists(paste0(folder,"/time.rds"))) {
-  time = generate_time_SB_mean(input_path, timing_path, date, deconv_methods)
-  saveRDS(time, paste0(folder,"/time.rds"))
-} else {time = readRDS(paste0(folder,"/time.rds"))}
+scores = readRDS(paste0(score_path,date,"_silico_scores_consensus.rds"))
+time = readRDS(paste0(score_path,date,"_silico_time_consensus.rds"))
 
 ## ----
 ## Rank
@@ -85,11 +63,12 @@ df_score_cat = lapply(categories, function(x) {
 names(df_score_cat) = categories
 
 ## ----
-## Plot each setting with a delta barplot (overall score)
+## Plot each setting with a delta barplot of overall score (supp figure 14 panel D)
 ## ----
+res_fig2 = readRDS("../main_figs/figure2CD_figure3CD/df_res.rds")
 df_delta = ranks %>%
   mutate(Block=sapply(candidate, function(x) strsplit(x,"-")[[1]][1]),
-         Block = ifelse(Block=="met","DNAm","RNA"),
+         Block = ifelse(Block=="dnam","DNAm","RNA"),
          Class=sapply(candidate, function(x) strsplit(x,"-")[[1]][3]),
          Class = ifelse(Class=="sup","Supervised","Unsupervised"),
          Setting=paste(Block,Class,sep="\n"),
@@ -113,14 +92,14 @@ ggplot(df_delta, aes(x=Setting, y=Delta, fill=DeconvTool)) +
   xlab("") +
   ylim(c(-.26,.26)) +
   theme_modern()
-ggsave(paste0(folder,"/delta_barplot.pdf"), width=6.8, height=3.5, device = cairo_pdf)
+ggsave(paste0(folder,"/panelD.pdf"), width=6.8, height=3.5, device = cairo_pdf)
 
 ## ----
-## Plot each setting with a delta barplot (raw perf only)
+## Plot each setting with a delta barplot per cat (supp figure 14 panels A,B,C)
 ## ----
 df_delta_cat = lapply(names(df_score_cat), function(y) {
   df = df_score_cat[[y]] %>%
-    mutate(Block = ifelse(Block=="met","DNAm","RNA"),
+    mutate(Block = ifelse(Block=="dnam","DNAm","RNA"),
            Class = ifelse(sup=="sup","Supervised","Unsupervised"),
            Setting=paste(Block,Class,sep="\n")) %>%
     group_by(Setting,dataset) %>%

@@ -152,7 +152,7 @@ df_all = df_all %>%
   mutate(Supervised=ifelse(DeconvTool %in% meth_unsup,'Unsupervised','Supervised'))
 
 ## ----
-## Plot Pearson for all cell types / all methods / 1 dataset
+## Plot Pearson for all cell types / all methods / 1 dataset for figure 6
 ## ----
 for (i in seq(nrow(rare_datasets))) {
   generate_plot(df_all, rare_datasets$Dataset[i], rare_datasets$Omic[i]) + guides(fill='none',color='none')

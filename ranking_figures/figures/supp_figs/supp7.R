@@ -1,13 +1,17 @@
 ## ----
-## Set parameters
+## Set parameters, put your own
+## ----
+folder = strsplit(basename(rstudioapi::getSourceEditorContext()$path),".R")[[1]]
+
+## ----
+## Load libraries
 ## ----
 library(dplyr)
 library(ComplexHeatmap)
 library(circlize)
-folder = strsplit(basename(rstudioapi::getSourceEditorContext()$path),".R")[[1]]
 
 ## ----
-## Create methods charac
+## Create methods charac, add your methods if needed
 ## ----
 charac_meth = data.frame("Supervised"=c(rep("Supervised",4),
                                         rep("Unsupervised",3),
@@ -34,10 +38,10 @@ rownames(charac_meth) = c("RLR","CIBERSORT","InstaPrism","NNLS",
                           "SVR","Elastic net","OLS","WISP","DeconRNASeq","FARDEEP","FARDEEP_sto",
                           "PREDE","CDSeq")
 charac_meth$Omic = factor(charac_meth$Omic, levels=unique(charac_meth$Omic))
-saveRDS(charac_meth, file = paste0(folder,'/charac_meth.rds'))
+saveRDS(charac_meth, file = paste0(folder,'/charac_methods.rds'))
 
 ## ----
-## Plot heatmap
+## Plot heatmap supp figure 7
 ## ----
 col_fun_sup = c(rep("white",length(charac_meth %>%
                                                  filter(Supervised=="Supervised") %>%
@@ -94,8 +98,6 @@ ht_unsup = Heatmap(charac_meth %>%
                    cell_fun = function(j, i, x, y, width, height, fill) {
                      grid.text(charac_meth[charac_meth$Supervised=="Unsupervised",!colnames(charac_meth)%in%c("Omic","Supervised")][i,j], x, y)
                    },)
-ht_sup
-ht_unsup
 pdf(paste0(folder,"/sup.pdf"))
 draw(ht_sup,
      column_title = "Supervised methods",

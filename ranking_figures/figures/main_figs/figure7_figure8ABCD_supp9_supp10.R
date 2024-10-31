@@ -61,7 +61,7 @@ rm(res)
 ## ----
 ranks_vitro = ranking_consensus(scores1=scores_vitro, scores2=time_vitro, scores_to_keep=scores_to_keep)
 ranks_vivo = ranking_consensus(scores1=scores_vivo, scores2=time_vivo, scores_to_keep=scores_to_keep)
-res_fig2 = readRDS("figure2_CD_figure3_CD/df_res.rds")
+res_fig2 = readRDS("figure2CD_figure3CD/df_res.rds")
 ranks = lapply(res_fig2, function(x)
   rbind(ranks_vitro %>% filter(candidate %in% unique(x$candidate)) %>%
     mutate(DeconvTool=sapply(candidate, function(x) strsplit(x,"-")[[1]][2]),
@@ -151,7 +151,6 @@ score_inter = lapply(res_fig2, function(x)
           mutate(Source="In silico",
                  dataset=sapply(dataset, function(x) strsplit(x,"-")[[1]][1]))))
 saveRDS(score_inter, paste0(folder,'/score_inter.rds'))
-
 
 ranks = mapply(function(x,y) {
   x %>% mutate(Setting=paste0(sub("dnam","DNAm",
@@ -255,8 +254,8 @@ for (p in seq_along(plot_table)) {
 }
 
 ## ----
-## Plot scatterplot for methods that ran on ALL datasets for BOTH in vitro/in vivo sources (figure 7)
-## Plot scatterplot for all methods (supp figure 9)
+## Plot scatterplot ONLY for methods that ran on ALL datasets for BOTH in vitro/in vivo sources (figure 7)
+## Plot scatterplot for ALL methods (supp figure 9)
 ## ----
 ranks_filter = lapply(seq_along(ranks_filter), function(x) {
   ranks_filter[[x]]$DeconvTool = factor(ranks_filter[[x]]$DeconvTool, levels=rownames(mean_overall[[x]]))
@@ -355,7 +354,7 @@ for (i in seq_along(colors_in)) {
 
 
 ## ----
-## Plot spiderplots (figure 8 panels A,B,C,D)
+## Plot spiderplots (figure 8 panels A,B,C,D and supp figure 10)
 ## ----
 dev.off()
 lapply(seq_along(spiderlist1), function(setting)
@@ -365,7 +364,7 @@ lapply(seq_along(spiderlist1), function(setting)
     colnames(data) = c('RMSE','Time','Pearson_s (sd)','Pearson_c (sd)', 'Pearson_s', 'Pearson_c','Pearson_m','MAE')
     legends = sapply(rownames(spiderlist1[[setting]][[method]][-c(1,2),]), function(x)
       strsplit(strsplit(x,"_")[[1]][1],"-")[[1]][1])
-    pdf(file = paste0(folder,"/fig8/",names(spiderlist1)[setting],"/",names(spiderlist1[[setting]])[method],".pdf"),
+    pdf(file = paste0(folder,"/fig8_supp10/",names(spiderlist1)[setting],"/",names(spiderlist1[[setting]])[method],".pdf"),
         width = 8)
     par(mar = c(1, 1, 1, 1))
     radarchart(data,

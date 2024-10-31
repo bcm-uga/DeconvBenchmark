@@ -17,7 +17,7 @@ library(see)
 ## ----
 ## Load fig2/3 res
 ## ----
-df_res <- readRDS("figure2_CD_figure3_CD/df_res.rds")
+df_res <- readRDS("figure2CD_figure3CD/df_res.rds")
 
 ## ----
 ## Select 1 setting / 2 methods / 1 dataset with rare cell types: (you can put your own selection)

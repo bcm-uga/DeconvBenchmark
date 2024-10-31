@@ -7,6 +7,10 @@ name_file = 'noise'
 #name_file = 'sample'
 
 score_path = "../../compute_metrics/scores/"
+n_permutations <- 1000
+source("../generic_functions/load_scores_SB_silico.R")
+source("../generic_functions/ranking_process.R")
+source("../generic_functions/ranking_pval.R")
 folder = strsplit(basename(rstudioapi::getSourceEditorContext()$path),".R")[[1]]
 
 meth_rna_sup = c("DeconRNASeq", "nnls", "ols","svr","CIBERSORT", "elasticnet", "rlr","WISP", "InstaPrism", "fardeep", "fardeepsto")
@@ -32,8 +36,6 @@ library(see)
 ## ----
 ## Load scores & rank
 ## ----
-source("../generic_functions/load_scores_SB_silico.R")
-source("../generic_functions/ranking_process.R")
 df_scores = list()
 df_time = list()
 for (idx in seq_along(dates)) {
@@ -78,8 +80,6 @@ delta_df = rank_consensus %>%
 ## ----
 ## Pval for each method between simu params
 ## ----
-n_permutations <- 1000
-
 df_scores_norm = ranking_step1(scores,time) %>%
   coerce_pearson() %>%
   mutate(block=sapply(candidate, function(x) strsplit(x,"-")[[1]][1]),
@@ -88,7 +88,6 @@ df_scores_norm = ranking_step1(scores,time) %>%
          method=sapply(candidate, function(x) strsplit(x,"-")[[1]][2]))
 
 # compute p-values
-source("../generic_functions/ranking_pval.R")
 for (Block in unique(df_scores_norm$block)) {
   print(paste("Running", Block))
   for (Class in unique(df_scores_norm$class)) {
@@ -146,7 +145,7 @@ pval_df = pval_df %>%
          y = ifelse(y1<0, .02, y1))
 
 ## ----
-## Plot
+## Plot figure 5 panels A,B
 ## ----
 if (length(dates)>2) {my_comparisons <- list( c(levels(rank_consensus$Date)[1], levels(rank_consensus$Date)[2]),
                                               c(levels(rank_consensus$Date)[2], levels(rank_consensus$Date)[3]))

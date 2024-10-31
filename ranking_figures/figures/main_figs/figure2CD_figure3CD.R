@@ -3,6 +3,8 @@
 ## ----
 date = "241025"
 score_path = "../../compute_metrics/scores/"
+source("../generic_functions/ranking_process.R")
+source("../generic_functions/load_scores_SB_silico.R")
 folder = strsplit(basename(rstudioapi::getSourceEditorContext()$path),".R")[[1]]
 
 meth_rna_sup = c("DeconRNASeq", "nnls", "ols","svr","CIBERSORT", "elasticnet", "rlr","WISP", "InstaPrism", "fardeep", "fardeepsto")
@@ -24,7 +26,6 @@ library(see)
 ## ----
 ## Load scores
 ## ----
-source("../generic_functions/load_scores_SB_silico.R")
 res = load_data(date, score_path)
 scores = res$scores
 time = res$time
@@ -33,8 +34,6 @@ rm(res)
 ## ----
 ## Compute intermediate and overall scores
 ## ----
-source("../generic_functions/ranking_process.R")
-
 ranks = ranking_consensus(scores1=scores, scores2=time)
 
 # inter scoring
@@ -81,7 +80,7 @@ best_FS_per_tool = ranks %>%
   select(setting,fs,candidate,block)
 
 ## ----
-## Plot figures 2 and 3
+## Plot figures 2 and 3 panels C,D
 ## ----
 settings = list(meth_dnam_sup,meth_dnam_unsup,
                 meth_rna_sup,meth_rna_unsup)

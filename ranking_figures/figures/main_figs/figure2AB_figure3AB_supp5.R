@@ -104,7 +104,7 @@ df_pval = lapply(df_pval, function(x) {
   })
 
 signif_pvalues = lapply(c(t(outer(c("dnam","rna"), c("sup","unsup"), paste, sep="_"))), function(x) {
-  pval_res = readRDS(paste0(folder,"pval_",x,".rds"))$pvalues
+  pval_res = readRDS(paste0(folder,"/pval_",x,".rds"))$pvalues
   df = data.frame(pairs = names(pval_res), p = pval_res)
   rownames(df) = NULL
   df %>%
@@ -146,7 +146,7 @@ for (i in seq_along(df_pval)) {
     stat_pvalue_manual(data=signif_pvalues[[i]],
                        label = "p_lab", y = "Score", x = "group2", color = "group1", label.size = 9) +
     scale_col_fun(i) +
-    ylim(c(0.1,1)) +
+    ylim(c(0,1)) +
     ylab("Overall benchmark score") +
     theme_modern(axis.text.angle = 30, axis.text.size = 20) +
     guides(color="none", shape="none")
@@ -162,7 +162,7 @@ for (i in seq_along(df_pval)) {
     scale_col_fun(i) +
     scale_size_manual(values=c(rep(4.5,length(unique(df_pval[[i]]$Dataset))-1),6)) +
     scale_shape_manual(values = c(1:(length(unique(df_pval[[i]]$Dataset))-1),17)) +
-    ylim(c(0.1,1)) +
+    ylim(c(0,1)) +
     ylab("Benchmark score") +
     theme_modern(axis.text.angle = 30, axis.text.size = 22, axis.title.size = 24) +
     guides(color="none")

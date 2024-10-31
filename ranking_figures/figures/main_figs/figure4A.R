@@ -3,6 +3,8 @@
 ## ----
 date = "241025"
 score_path = "../../compute_metrics/scores/"
+source("../generic_functions/load_scores_SB_silico.R")
+source("../generic_functions/ranking_process.R")
 folder = strsplit(basename(rstudioapi::getSourceEditorContext()$path),".R")[[1]]
 
 meth_rna_sup = c("DeconRNASeq", "nnls", "ols","svr","CIBERSORT", "elasticnet", "rlr","WISP", "InstaPrism", "fardeep", "fardeepsto")
@@ -21,7 +23,6 @@ library(see)
 ## ----
 ## Load scores & keep only multi-omic datasets
 ## ----
-source("../generic_functions/load_scores_SB_silico.R")
 res = load_data(date,score_path)
 scores = res$scores
 time = res$time
@@ -34,8 +35,6 @@ time = time %>% filter(dataset %in% c(sapply(c("dnam","rna"), function(x) paste(
 ## ----
 ## Compute intermediate and overall scores
 ## ----
-source("../generic_functions/ranking_process.R")
-
 ranks = ranking_consensus(scores1=scores, scores2=time)
 
 # inter scoring
@@ -72,7 +71,7 @@ score_all = left_join(score_inter, ranks, by='candidate')
 ## ----
 ## Retrieve best FS per DeconvTool
 ## ----
-best_fs = lapply(readRDS("figure2_CD_figure3_CD/df_res.rds"), function(x) unique(x$candidate))
+best_fs = lapply(readRDS("figure2CD_figure3CD/df_res.rds"), function(x) unique(x$candidate))
 df_fig = lapply(best_fs, function(x)
   score_all %>%
     filter(candidate %in% x))
@@ -94,7 +93,7 @@ ranks$Block[ranks$Block=='rna'] = 'RNA'
 ranks$DeconvTool = factor(ranks$DeconvTool, levels=unique(ranks$DeconvTool))
   
 ## ----
-## Plot
+## Plot figure 4A
 ## ----
 ggplot(ranks, aes(y=overall,x=DeconvTool,color=Block)) +
   geom_point(shape=17,size=3) +

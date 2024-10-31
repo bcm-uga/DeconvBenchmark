@@ -32,6 +32,6 @@ score_SB_invivo(vivo_path, deconv_path, score_path,
 ## Time
 ## ----
 time_SB_silico(timing_path, score_path, date)
-time_SB_consensus(silico_path, timing_path, score_path, date, deconv_methods)
+time_SB_consensus(silico_path, timing_path, score_path, date, best2_deconv_methods)
 time_SB_invitro(timing_path, score_path)
 time_SB_invivo(timing_path, score_path)

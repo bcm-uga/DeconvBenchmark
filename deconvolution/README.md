@@ -21,7 +21,7 @@ snakemake --latency-wait 60 --cores 1 --jobs 50
 
 ## Adding new datasets
 In case the user wants to add new datasets, the following parts of the deconvolution scripts need to be modified:
-- for the supervised deconvolution with InstaPrism, the function "prism.states" should be modified to include the variable cell types (in our case tumor types) of the new dataset: sections ##Define variable types and ## Deaggregate variable types,
+- for the supervised deconvolution with InstaPrism, the function "prism.states" should be modified to include the variable cell types (in our case tumor types) of the new dataset: sections ##Define variable types and ##Deaggregate variable types,
 - the list featselec_K has to include the expected number of cell types k in the new dataset, in the format "New_Data"=k, for the feature selection step,
 - in the Snakefile, the parameter DATA_OMIC should be modified as well to include the new dataset.
 

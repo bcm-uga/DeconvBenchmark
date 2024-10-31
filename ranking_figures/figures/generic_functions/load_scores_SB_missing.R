@@ -1,7 +1,7 @@
 ## ----
 ## load scores
 ## ----
-load_data = function(experiment, score_path) {
+load_data_missing = function(experiment, score_path) {
   scores = readRDS(paste0(score_path,experiment,"_scores.rds"))
   time = readRDS(paste0(score_path,experiment,"_time.rds"))
   

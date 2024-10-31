@@ -1,4 +1,4 @@
-weights_dic_values=list("consensus"=.5, "raw_perf"=1, "stab_perf"=.5, "time"=.5)
+weights_dic_values=list("raw_perf"=1, "stab_perf"=.5, "time"=.5)
 
 #######
 ####### BASIC FUNCTIONS ####### 
@@ -112,15 +112,14 @@ ranking_norm <- function(scores1, scores2, cat_score=NULL) {
   colnames(score_df)[1:5] <- c("score","name_score","simulation","dataset","candidate")
   
   # keep only non redundant scores
-  score_to_keep <- c("time time","rmse perf_g","mae perf_g","pearson perf_g","pearson med_c","pearson med_s","pearson sd_c","pearson sd_s","mae consensus")
+  score_to_keep <- c("time time","rmse perf_g","mae perf_g","pearson perf_g","pearson med_c","pearson med_s","pearson sd_c","pearson sd_s")
   score_df <- score_df[score_df$name_score %in% score_to_keep,]
   
   # implement the column cat_score
   if (is.null(cat_score)) {
     cat_score <- list("raw_perf"=c("rmse perf_g", "mae perf_g", "pearson perf_g", "pearson med_c", "pearson med_s", "pearson perf_mean"),
                       "stab_perf"=c("mae sd_g", "pearson sd_g", "rmse sd_g", "pearson sd_c", "pearson sd_s", "pearson sd_mean"),
-                      "time"=c("time time","time sd"),
-                      "consensus"=c("mae consensus","consensus sd"))
+                      "time"=c("time time","time sd"))
   }
   score_df$cat_score <- convert_to_cat(cat_score, score_df$name_score)
   
@@ -168,15 +167,14 @@ ranking_step1 <- function(scores1, scores2, cat_score=NULL) {
   colnames(score_df)[1:5] <- c("score","name_score","simulation","dataset","candidate")
   
   # keep only non redundant scores
-  score_to_keep <- c("time time","rmse perf_g","mae perf_g","pearson perf_g","pearson med_c","pearson med_s","pearson sd_c","pearson sd_s","mae consensus")
+  score_to_keep <- c("time time","rmse perf_g","mae perf_g","pearson perf_g","pearson med_c","pearson med_s","pearson sd_c","pearson sd_s")
   score_df <- score_df[score_df$name_score %in% score_to_keep,]
   
   # implement the column cat_score
   if (is.null(cat_score)) {
     cat_score <- list("raw_perf"=c("rmse perf_g", "mae perf_g", "pearson perf_g", "pearson med_c", "pearson med_s", "pearson perf_mean"),
                       "stab_perf"=c("mae sd_g", "pearson sd_g", "rmse sd_g", "pearson sd_c", "pearson sd_s", "pearson sd_mean"),
-                      "time"=c("time time","time sd"),
-                      "consensus"=c("mae consensus","consensus sd"))
+                      "time"=c("time time","time sd"))
   }
   score_df$cat_score <- convert_to_cat(cat_score, score_df$name_score)
   
@@ -196,29 +194,22 @@ ranking_step1 <- function(scores1, scores2, cat_score=NULL) {
   tmp4 <- score_df %>%
     filter(name_score=="time time") %>%
     group_by(dataset, candidate)
-  tmp5 <- score_df %>%
-    filter(name_score=="mae consensus") %>%
-    group_by(dataset, candidate)
   std_df <- data.frame("val"= c(tmp1 %>% summarise(std=sd(score, na.rm=T)) %>% pull(std),
                                 tmp2 %>% summarise(std=sd(score, na.rm=T)) %>% pull(std),
                                 tmp3 %>% summarise(std=sd(score, na.rm=T)) %>% pull(std),
-                                tmp4 %>% summarise(std=sd(score, na.rm=T)) %>% pull(std),
-                                tmp5 %>% summarise(std=sd(score, na.rm=T)) %>% pull(std)),
+                                tmp4 %>% summarise(std=sd(score, na.rm=T)) %>% pull(std)),
                        "name_score"=c(rep('mae sd_g',tbl_groups_nb(tmp1)),
                                       rep('pearson sd_g',tbl_groups_nb(tmp2)),
                                       rep('rmse sd_g',tbl_groups_nb(tmp3)),
-                                      rep('time sd',tbl_groups_nb(tmp4)),
-                                      rep('consensus sd',tbl_groups_nb(tmp5))),
+                                      rep('time sd',tbl_groups_nb(tmp4))),
                        "dataset"=c(tmp1 %>% summarise(std=sd(score, na.rm=T)) %>% pull(dataset),
                                    tmp2 %>% summarise(std=sd(score, na.rm=T)) %>% pull(dataset),
                                    tmp3 %>% summarise(std=sd(score, na.rm=T)) %>% pull(dataset),
-                                   tmp4 %>% summarise(std=sd(score, na.rm=T)) %>% pull(dataset),
-                                   tmp5 %>% summarise(std=sd(score, na.rm=T)) %>% pull(dataset)),
+                                   tmp4 %>% summarise(std=sd(score, na.rm=T)) %>% pull(dataset)),
                        "candidate"=c(tmp1 %>% summarise(std=sd(score, na.rm=T)) %>% pull(candidate),
                                      tmp2 %>% summarise(std=sd(score, na.rm=T)) %>% pull(candidate),
                                      tmp3 %>% summarise(std=sd(score, na.rm=T)) %>% pull(candidate),
-                                     tmp4 %>% summarise(std=sd(score, na.rm=T)) %>% pull(candidate),
-                                     tmp5 %>% summarise(std=sd(score, na.rm=T)) %>% pull(candidate)))
+                                     tmp4 %>% summarise(std=sd(score, na.rm=T)) %>% pull(candidate)))
   
   # compute stability sd_c and sd_s across sims (step 0)
   std_df2 <- score_df %>%
@@ -229,7 +220,7 @@ ranking_step1 <- function(scores1, scores2, cat_score=NULL) {
   # merge resulting sd dataframes (step 0)
   std_df <- bind_rows(std_df, std_df2)
   
-  # compute all medians across sims for raw perf and time and consensus categories (step 0)
+  # compute all medians across sims for raw perf and time categories (step 0)
   score_df_median <- score_df %>%
     filter(cat_score=="raw_perf") %>%
     group_by(name_score, dataset, candidate) %>%
@@ -238,12 +229,8 @@ ranking_step1 <- function(scores1, scores2, cat_score=NULL) {
     filter(cat_score=="time") %>%
     group_by(name_score, dataset, candidate) %>%
     summarise(val=median(score, na.rm=T))
-  consensus_df_median <- score_df %>%
-    filter(cat_score=="consensus") %>%
-    group_by(name_score, dataset, candidate) %>%
-    summarise(val=median(score, na.rm=T))
-  df_median <- bind_rows(score_df_median, std_df, time_df_median, consensus_df_median)
-  rm(std_df, std_df2, score_df, time_df_median, consensus_df_median)
+  df_median <- bind_rows(score_df_median, std_df, time_df_median)
+  rm(std_df, std_df2, score_df, time_df_median)
   
   # add the column cat_score
   df_median$cat_score <- convert_to_cat(cat_score, df_median$name_score)

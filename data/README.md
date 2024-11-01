@@ -1,6 +1,6 @@
 The folder [simulation_scripts](simulation_scripts) contains the scripts to do the simulations (generate_simu_DATASET.R), as well as the script to generate a reference with an additional fake cell type.
 The simulations scripts will load a reference from a folder "references/" and create simulations with the date of the day in a folder called "simulations/"
 
-The reference matrices used for the *in silico* data can be downloaded from Zenodo (DOI [10.5281/zenodo.14024479](10.5281/zenodo.14024479)).
+The reference matrices used for the *in silico* data can be downloaded from Zenodo (DOI 10.5281/zenodo.14024479).
 
 The TABLE BELOW recapitulates where to download *in vitro* and *in vivo* data.

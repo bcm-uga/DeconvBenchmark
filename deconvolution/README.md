@@ -5,7 +5,7 @@ This folder contains
 - the definition file for the apptainer container [container2.def](container2.def), along with the directions to create the container from the definition file [container.md](container.md). The definition file can be updated to test new methods by adding necessary packages.
 
 ## Quick guide to install snakemake with mamba
-```
+```shell
 conda install -n base -c conda-forge mamba
 mamba create -c conda-forge -c bioconda -n YOUR_ENV 'snakemake==7.22.0'
 conda activate YOUR_ENV
@@ -15,7 +15,7 @@ conda activate YOUR_ENV
 - The parameter 'input_path' in the R scripts needs to be changed to the path where you stored the dataset to be deconvoluted.
 - In [Snakefile](Snakefile), the path YOUR/PROJECT/ROOT needs to be changed to the root path of your project in the shell command of the deconvoution rules.
 - Run the Snakefile
-```
+```shell
 snakemake --latency-wait 60 --cores 1 --jobs 50
 ```
 

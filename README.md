@@ -7,6 +7,7 @@ Our pipeline can be easily extended to include and evaluate novel methods, as we
 
 Shortly, we made in silico data using reference profiles of pure cell types from different tissues convoluted with proportions generated based on a Dirichlet distribution. The scripts are in [simulation_scripts](data/simulation_scripts/), and the reference profiles can be downloaded from Zenodo DOIDOIDOI.
 The folder [data](data/) has the following architecture:
+```
 .
 ├── simulation_scripts
 │   ├── generate_simu_DATA1.R
@@ -25,6 +26,7 @@ The folder [data](data/) has the following architecture:
 │   │   ├── 240101_DATA2_sim01.rds
 │   │   └── 240101_DATA2_sim02.rds
 ...
+```
 
 This is also where we stored the *in vitro* and *in vivo* datasets, with the syntax data/invitro/DATA_A.rds for the reference matrix and data/invitro/DATA_D_OMIC.rds for the methylation/expression matrix/. Please refer to the table [here](data/README.md) for the instructions on where to download *in vitro* and *in vivo* data.
 

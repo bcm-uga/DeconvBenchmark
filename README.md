@@ -28,7 +28,8 @@ The folder [data](data/) has the following architecture:
 ...
 ```
 
-This is also where we stored the *in vitro* and *in vivo* datasets, with the syntax data/invitro/DATA_A.rds for the reference matrix and data/invitro/DATA_D_OMIC.rds for the methylation/expression matrix/. Please refer to the table [here](data/README.md) for the instructions on where to download *in vitro* and *in vivo* data.
+This is also where we stored the *in vitro* and *in vivo* datasets, with the syntax 
+```data/invitro/DATA_A.rds``` for the reference matrix and ```data/invitro/DATA_D_OMIC.rds``` for the methylation/expression matrix/. Please refer to the table [here](data/README.md) for the instructions on where to download *in vitro* and *in vivo* data.
 
 ## How to run the deconvolution methods: folder [deconvolution](deconvolution/)
 
@@ -38,7 +39,7 @@ Briefly, this folder contains the scripts to perform the deconvolution pipeline.
 
 Snakemake will run all methods for all omics. The [Snakefile](deconvolution/Snakefile) is self-explanatory and can be modified to include new methods/datasets. In general, you can refer to the [README](deconvolution/README.md) to know how to test new methods/datasets.
 
-Results of the deconvolution, *i.e.* estimation of the proportion matrix along with elapsed time will be stored in deconvolution/results/prediction/OMIC/CLASS/ for the proportion matrix and deconvolution/results/timing/OMIC/CLASS/ for the time elapsed with the syntax 240101_DATA1_Apred_FS_METHOD_sim01.rds / 240101_DATA1_timing_FS_METHOD_sim01.rds (FS being the feature selection strategy and METHOD the deconvolution algorithm).
+Results of the deconvolution, *i.e.* estimation of the proportion matrix along with elapsed time will be stored in ```deconvolution/results/prediction/OMIC/CLASS/``` for the proportion matrix and ```deconvolution/results/timing/OMIC/CLASS/``` for the time elapsed with the syntax ```240101_DATA1_Apred_FS_METHOD_sim01.rds``` / ```240101_DATA1_timing_FS_METHOD_sim01.rds``` (FS being the feature selection strategy and METHOD the deconvolution algorithm).
 
 ## How to do the ranking and reproduce the figures of the paper: folder [ranking_figures](ranking_figures/)
 

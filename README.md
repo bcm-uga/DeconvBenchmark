@@ -5,7 +5,7 @@ Our pipeline can be easily extended to include and evaluate novel methods, as we
 
 ## How to make in silico data: folder [data](data/)
 
-Shortly, we made in silico data using reference profiles of pure cell types from different tissues convoluted with proportions generated based on a Dirichlet distribution. The scripts are in [simulation_scripts](data/simulation_scripts/), and the reference profiles can be downloaded from Zenodo DOIDOIDOI.
+Shortly, we made in silico data using reference profiles of pure cell types from different tissues convoluted with proportions generated based on a Dirichlet distribution. The scripts are in [simulation_scripts](data/simulation_scripts/), and the reference profiles can be downloaded from Zenodo (DOI [10.5281/zenodo.14024479](10.5281/zenodo.14024479)).
 The folder [data](data/) has the following architecture:
 ```
 .

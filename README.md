@@ -43,3 +43,6 @@ Results of the deconvolution, *i.e.* estimation of the proportion matrix along w
 
 ## How to do the ranking and reproduce the figures of the paper: folder [ranking_figures](ranking_figures/)
 
+(a) First, you can compute the different metrics (in our case, RMSE, MAE and Pearson correlation coefficients): just run the script [compute_scores.R](compute_metrics/compute_scores.R) and the scores will be stored in ```compute_metrics/scores/```: one file for the time (```..._time.rds```) and one file for the other metrics (```..._scores.rds```)
+
+(b) The different figures of the paper can then be reproduced.

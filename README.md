@@ -33,7 +33,7 @@ This is also where we stored the *in vitro* and *in vivo* datasets, with the syn
 
 ## How to run the deconvolution methods: folder [deconvolution](deconvolution/)
 
-This pipeline uses an Apptainer container and Snakemake. Instructions on how to use these tools can be found [here](deconvolution/README.md) and [here](deconvolution/container.md). The Apptainer container can be downloaded from Zenodo DOIDOIDOI.
+This pipeline uses an Apptainer container and Snakemake. Instructions on how to use these tools can be found [here](deconvolution/README.md) and [here](deconvolution/container.md).
 
 Briefly, this folder contains the scripts to perform the deconvolution pipeline. There is one script per setting (class of the method/omic type). Those scripts can be modified to include new methods and/or new datasets (cf [README](deconvolution/README.md)).
 

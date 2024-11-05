@@ -47,8 +47,9 @@ Results of the deconvolution, *i.e.* estimation of the proportion matrix along w
 
 (b) The different figures of the paper can then be reproduced.
 
-## Session Info
+## Session info
 ```R
+> sessionInfo()
 R version 4.2.0 (2022-04-22)
 Platform: x86_64-apple-darwin17.0 (64-bit)
 Running under: macOS 14.1

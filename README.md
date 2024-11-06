@@ -31,6 +31,13 @@ flowchart LR
 ## How to make in silico data: folder [data](data/)
 
 Shortly, we made in silico data using reference profiles of pure cell types from different tissues convoluted with proportions generated based on a Dirichlet distribution. The scripts are in [simulation_scripts](data/simulation_scripts/), and the reference profiles can be downloaded from Zenodo (DOI 10.5281/zenodo.14024479).
+
+For example, to generate the simulations for the BlCL dataset, simply run:
+```shell
+cd data/simulation_scripts
+Rscript generate_simu_BlCL.R
+```
+
 The folder [data](data/) has the following architecture:
 ```
 .
@@ -53,14 +60,36 @@ The folder [data](data/) has the following architecture:
 ...
 ```
 
-This is also where we stored the *in vitro* and *in vivo* datasets, with the syntax 
-```data/invitro/DATA_A.rds``` for the reference matrix and ```data/invitro/DATA_D_OMIC.rds``` for the methylation/expression matrix/. Please refer to the table [here](data/README.md) for the instructions on where to download *in vitro* and *in vivo* data.
+This is also where we store the *in vitro* and *in vivo* datasets: ```data/invitro/DATA_A.rds``` for the proportion matrix and ```data/invitro/DATA_D_OMIC.rds``` for the methylation/expression matrix/. Please refer to the table [here](data/README.md) for the instructions on where to download *in vitro* and *in vivo* data.
 
 ## How to run the deconvolution methods: folder [deconvolution](deconvolution/)
 
 This pipeline uses an Apptainer container and Snakemake. Instructions on how to use these tools can be found [here](deconvolution/README.md) and [here](deconvolution/container.md).
 
 Briefly, this folder contains the scripts to perform the deconvolution pipeline. There is one script per setting (class of the method/omic type). Those scripts can be modified to include new methods and/or new datasets (cf [README](deconvolution/README.md)).
+
+To build the container and run this pipeline, and after creating a virtual environment YOUR_VENV with snakemake installed on it:
+```shell
+cd deconvolution
+sudo apptainer build container2.sif container2.def
+mkdir results
+mkdir results/prediction
+mkdir results/prediction/dnam
+mkdir results/prediction/dnam/sup
+mkdir results/prediction/dnam/unsup
+mkdir results/prediction/rna
+mkdir results/prediction/rna/sup
+mkdir results/prediction/rna/unsup
+mkdir results/timing
+mkdir results/timing/dnam
+mkdir results/timing/dnam/sup
+mkdir results/timing/dnam/unsup
+mkdir results/timing/rna
+mkdir results/timing/rna/sup
+mkdir results/timing/rna/unsup
+conda activate YOUR_VENV
+snakemake --latency-wait 60 --cores 1 --jobs 50
+```
 
 Snakemake will run all methods for all omics. The [Snakefile](deconvolution/Snakefile) is self-explanatory and can be modified to include new methods/datasets. In general, you can refer to the [README](deconvolution/README.md) to know how to test new methods/datasets.
 
@@ -70,7 +99,17 @@ Results of the deconvolution, *i.e.* estimation of the proportion matrix along w
 
 (a) First, you can compute the different metrics (in our case, RMSE, MAE and Pearson correlation coefficients): just run the script [compute_scores.R](compute_metrics/compute_scores.R) and the scores will be stored in ```compute_metrics/scores/```: one file for the time (```..._time.rds```) and one file for the other metrics (```..._scores.rds```)
 
-(b) The different figures of the paper can then be reproduced.
+To compute those metrics, simply run:
+```shell
+cd ranking_figures/compute_metrics
+Rscript compute_scores.R
+```
+
+(b) The different figures of the paper can then be reproduced. For example, Figure 6 can be done by running:
+```shell
+cd ranking_figures/figures/main_figs
+Rscript figure6.R
+```
 
 ## Session info
 ```R

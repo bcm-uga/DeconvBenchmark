@@ -60,7 +60,7 @@ The folder [data](data/) has the following architecture:
 ...
 ```
 
-This is also where we store the *in vitro* and *in vivo* datasets: ```data/invitro/DATA_A.rds``` for the proportion matrix and ```data/invitro/DATA_D_OMIC.rds``` for the methylation/expression matrix/. Please refer to the table [here](data/README.md) for the instructions on where to download *in vitro* and *in vivo* data.
+This is also where we store the *in vitro* and *in vivo* datasets: ```data/invitro/DATA_A.rds``` for the proportion matrix and ```data/invitro/DATA_D_OMIC.rds``` for the methylation/expression matrix. Please refer to the table [here](data/README.md) for the instructions on where to download *in vitro* and *in vivo* data.
 
 ## How to run the deconvolution methods: folder [deconvolution](deconvolution/)
 

@@ -11,7 +11,7 @@ config:
 ---
 flowchart LR
     a1("Reference profiles"):::red --"simulations"--> b1("In silico data"):::red
-    subgraph Deconvolution
+    subgraph Deconvolution["Deconvolution methods"]
        c1("Proportions"):::blue ~~~ c2("Time"):::blue
     end
     b1 --> Deconvolution

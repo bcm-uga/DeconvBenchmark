@@ -1,24 +1,21 @@
 set.seed(0)
 
 ## ----
-## List all silico datasets
+## Parameters, put your own
 ## ----
-blocks = list.files("../../../acacia_2final/results/0simu/simulations", full.names = T)
-lots = lapply(blocks, function(x) unique(sapply(list.files(x, pattern="231027"), function(y)
-  strsplit(y,'_')[[1]][2])))
-blocks = list.files("../../../acacia_2final/results/0simu/simulations")
-names(lots) = blocks
-
+date="241025"
+rna_data = c("BlCL","BrCL1","BrCL2","PaCL1","PaCL2")
+  
 ## ----
 ## load original Tref
 ## ----
-Tref = lapply(names(lots), function(block)
-  lapply(lots[[block]], function(lot)
-    data.frame(readRDS(paste0("../../../acacia_2final/results/0simu/simulations/",block,"/231027_", lot, "_T_",block,"_ref.rds")))))
-names(Tref) = blocks
+Tref = lapply(list.files("../references", full.names = T, pattern = "CL"),
+              readRDS)
+names(Tref) = list.files("../references", pattern = "CL")
+
 
 ## ----
-## add fake cell types generated based on immune cell types
+## Functions
 ## ----
 add_noise_gaussian = function(dt, sd, mean=0) {
   noise = matrix(rnorm(prod(dim(dt)), mean = mean, sd = sd), nrow = nrow(dt))
@@ -43,7 +40,7 @@ add_noise <- function(mat, block, sd_rna=1, sd_met=1) {
   if (block=='rna') {
     mat_noisy <- add_noise_nb(mat, sd_rna)
   }
-  if (block=='met') {
+  if (block=='dnam') {
     m_val <- add_noise_gaussian(log2(mat/(1-mat)), sd_met)
     mat_noisy <- 2^m_val/(2^m_val+1) #probe x sample
     mat_noisy[mat_noisy<0] <- mat[mat_noisy<0]
@@ -54,29 +51,33 @@ add_noise <- function(mat, block, sd_rna=1, sd_met=1) {
   return(mat_noisy)
 }
 
-lapply(Tref, function(x) sapply(x,colnames))
-imm_cell_types   = list('met'=list('lymphocytes',
-                                   'IMMUNE',
-                                   c('CD19B','CD4T','CD8T','Monocyte','Neutrophil','NKcell','WBC'),
-                                   c('B.cells','CD4.T.cells','CD8.T.cells','Macrophages','Neutrophils')),
-                        'rna'=list(c('Jurkat','Thp1'),
-                                   'lymphocytes',
-                                   'IMMUNE',
-                                   c('B','mDC','Mono','Neut','NK','T'),
-                                   c('B.cells','CD4.T.cells','CD8.T.cells','Macrophages','Neutrophils')))
+## ----
+## add fake cell types generated based on immune cell types, adapt if new datasets
+## ----
+sapply(Tref,colnames)
+imm_cell_types = list(c('B','mDC','Mono','Neut','NK','T'),
+                      'lymphocytes',
+                      'lymphocytes',
+                      c('Jurkat','Thp1'),
+                      c('CD19B','CD4T','CD8T','Monocyte','Neutrophil','NKcell','WBC'),
+                      'IMMUNE',
+                      'IMMUNE',
+                      c('B.cells','CD4.T.cells','CD8.T.cells','Macrophages','Neutrophils'),
+                      c('B.cells','CD4.T.cells','CD8.T.cells','Macrophages','Neutrophils'))
 
-for (block in blocks) {
-  for (dataset in seq_along(Tref[[block]])) {
-    print(lots[[block]][[dataset]])
-    Tmat_imm = Tref[[block]][[dataset]][,imm_cell_types[[block]][[dataset]]]
-    if (length(imm_cell_types[[block]][[dataset]])==1) {
-      Tmat_imm_meta = add_noise(matrix(Tmat_imm),block=block)
-    } else {
-      Tmat_imm_meta = add_noise(matrix(rowMeans(Tmat_imm)),block=block)
-    }
-    Tmat_addedinT = cbind(Tref[[block]][[dataset]],Tmat_imm_meta)
-    colnames(Tmat_addedinT) = c(colnames(Tref[[block]][[dataset]]),"MetaImmune")
-    saveRDS(Tmat_addedinT,
-            paste0("../../../acacia_2final/results/0simu/simulations/",block,"/231027_", lots[[block]][[dataset]], "_T_",block,"_ref_addedinT.rds"))
+for (data in seq_along(Tref)) {
+  name_data = gsub(".rds","",names(Tref)[data])
+  print(name_data)
+  block = ifelse(name_data %in% rna_data,"rna","dnam")
+  Tmat_imm = Tref[[data]][,imm_cell_types[[data]]]
+  if (length(imm_cell_types[[data]])==1) {
+    Tmat_imm_meta = add_noise(matrix(Tmat_imm),block=block)
+  } else {
+    Tmat_imm_meta = add_noise(matrix(rowMeans(Tmat_imm)),block=block)
   }
+  Tmat_added = cbind(Tref[[data]],Tmat_imm_meta)
+  colnames(Tmat_added) = c(colnames(Tref[[data]]),"MetaImmune")
+  saveRDS(Tmat_added,
+          paste0("../references/", name_data, "_added.rds"))
+  
 }

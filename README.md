@@ -3,7 +3,7 @@
 This repository contains all the files needed to perform deconvolution on example datasets, along with the ranking and the figures of the paper.
 Our pipeline can be easily extended to include and evaluate novel methods, as well as other datasets.
 
-[![](https://mermaid.ink/img/pako:eNqNUsFqxCAU_BWxlxY2kN3ePPS0FAotlN0eczH6TGSNhqduKcvut1eTbNqGFupJHee9mfGdqHASKKPKuHfRcgzkeVdZkhZf31Z0BwoQrADSo1PagK_oHWMMQZKiqKjXXTQ8aGcTUBQPpM6sJ0u8Nlo4InngM2Os62PdIO9bsgXh7NGZmOkjlpbIBV7R9Q6nspldmwjkcrkQsUnwm-7g636kgp3q12uShfxSvd6M2o464ELan5T7K-X4T8Zsby8catvMxuSQJ7eHyVKDAHbwJLOuR91EhO_YwtePXmP4U4ch-B_thOHeb0GRLNQntwdgN6osF-iQ6hUuS7WAR4Uzrkq6oh1gx7VME3PKrysaWsifwdJWcjxUtLLn9I7H4PYfVlAWMMKKootNez3EPkUJW81TUh1lihufbkHq4PBlnMdhLM-fHYTYTw?type=png)](https://mermaid.live/edit#pako:eNqNUsFqxCAU_BWxlxY2kN3ePPS0FAotlN0eczH6TGSNhqduKcvut1eTbNqGFupJHee9mfGdqHASKKPKuHfRcgzkeVdZkhZf31Z0BwoQrADSo1PagK_oHWMMQZKiqKjXXTQ8aGcTUBQPpM6sJ0u8Nlo4InngM2Os62PdIO9bsgXh7NGZmOkjlpbIBV7R9Q6nspldmwjkcrkQsUnwm-7g636kgp3q12uShfxSvd6M2o464ELan5T7K-X4T8Zsby8catvMxuSQJ7eHyVKDAHbwJLOuR91EhO_YwtePXmP4U4ch-B_thOHeb0GRLNQntwdgN6osF-iQ6hUuS7WAR4Uzrkq6oh1gx7VME3PKrysaWsifwdJWcjxUtLLn9I7H4PYfVlAWMMKKootNez3EPkUJW81TUh1lihufbkHq4PBlnMdhLM-fHYTYTw)
+[![](https://mermaid.ink/img/pako:eNqNUk1rAyEU_CtiLy1kYZPe9tBTKBRaCEmPXlx9uytxdXlqSgjJb6_uV9ulhXpSx3lvZnwXKqwEWtAsy5jxymsoyE51oJUB4kLbcjwz06OVth-i4ejJ654ZEhdf3zO6hwoQjADSoa2UBsfoQ1EUCJJEGnWqDZp7ZU0EsuyJlIn1YohTWglLJPd8Zgx1XShr5F1DtiCsOVkdEn3A4hKpwA5tZ3Esm9ilDkButxsRmwi_qxa-7gcqmLF-uSZJyC_Vy82g7aQ8LqT9SXmcKKd_MmZ7B2FRmXo2Jvs8uTmOlmoEML0nmXQ9qzogfMcWvn70GsIfO_TB_2gnNHduCxVJQl10e4TirsrzBdqnOsF5Xi3gQeGMVzld0Raw5UrGobqk14z6BtJnFHErOR4ZZeYa3_Hg7eFsBC08BlhRtKFupkPoYpSwVTwm1U6XIJW3-DZMbD-4109BD-RQ?type=png)](https://mermaid.live/edit#pako:eNqNUk1rAyEU_CtiLy1kYZPe9tBTKBRaCEmPXlx9uytxdXlqSgjJb6_uV9ulhXpSx3lvZnwXKqwEWtAsy5jxymsoyE51oJUB4kLbcjwz06OVth-i4ejJ654ZEhdf3zO6hwoQjADSoa2UBsfoQ1EUCJJEGnWqDZp7ZU0EsuyJlIn1YohTWglLJPd8Zgx1XShr5F1DtiCsOVkdEn3A4hKpwA5tZ3Esm9ilDkButxsRmwi_qxa-7gcqmLF-uSZJyC_Vy82g7aQ8LqT9SXmcKKd_MmZ7B2FRmXo2Jvs8uTmOlmoEML0nmXQ9qzogfMcWvn70GsIfO_TB_2gnNHduCxVJQl10e4TirsrzBdqnOsF5Xi3gQeGMVzld0Raw5UrGobqk14z6BtJnFHErOR4ZZeYa3_Hg7eFsBC08BlhRtKFupkPoYpSwVTwm1U6XIJW3-DZMbD-4109BD-RQ)
 
 
 ## How to make in silico data: folder [data](data/)
@@ -206,3 +206,21 @@ loaded via a namespace (and not attached):
 [238] viridis_0.6.4             reshape_0.8.9             debCAM_1.14.0            
 [241] compiler_4.2.0            spatstat.geom_3.2-7  
 ```
+
+<!---
+flowchart LR
+    a1("Reference profiles"):::red -"simulations"-> b1("In silico data"):::red
+    subgraph Deconvolution
+       c1("Proportions"):::blue ~~~ c2("Time"):::blue
+    end
+    b1 -> Deconvolution
+    b2("In vitro data"):::red -> Deconvolution
+    b3("In vivo data"):::red -> Deconvolution
+    subgraph Scoring
+       d1("Ranks"):::green ~~~ d2("Figures"):::green
+    end
+    Deconvolution -"scoring"-> Scoring
+    classDef red stroke:#f00
+    classDef blue stroke:#00f
+    classDef green stroke:#0f0
+--->

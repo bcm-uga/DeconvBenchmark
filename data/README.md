@@ -5,14 +5,15 @@ The reference matrices used for the *in silico* data can be downloaded from Zeno
 
 The table below recapitulates where to download *in vitro* and *in vivo* data.
 
-| Dataset name | Source   | Omic | Expression matrix                            | Proportion matrix                                               | Reference profiles matrix |
-|--------------|----------|------|----------------------------------------------|-----------------------------------------------------------------|---------------------------|
-| BlMIX        | In vitro | DNAm | GSE77797                                     | Figure 4a (DOI: 10.1186/s12859-016-0943-7)                      | GSE35069                  |
-| BrMIX        | In vitro | RNA  | GSE220605                                    | "Cell count" column, table S1 (DOI: 10.1186/s13059-023-03016-6) | GSE220605                 |
-| PaMIX        | In vitro | DNAm | TODO                                         | TODO                                                            | TODO                      |
-| PaMIX        | In vitro | RNA  | TODO                                         | TODO                                                            | TODO                      |
-| BlREAL1      | In vivo  | RNA  | https://github.com/Honchkrow/Deconer_dataset (Linsley.rds file) | https://github.com/Honchkrow/Deconer_dataset (Linsley.rds file) | https://github.com/Honchkrow/Deconer_dataset (Linsley.rds file) |
-| BlREAL2      | In vivo  | DNAm | GSE35069                                     | DOI: 10.1371/journal.pone.0041361.s004                          | GSE35069                  |
-| BlREAL3      | In vivo  | DNAm | GSE42861                                     | Table S2 (DOI: 10.1038/nbt.2487)                                | GSE35069                  |
-| BlREAL3      | In vivo  | RNA  | GSE93722                                     | Supplementary file 3A (DOI: 10.7554/eLife.26476 )               | EPIC::TRef                |
+| **Dataset name** | **Source** | **Omic** | **Expression matrix**                                      | **Proportion matrix**                                           | **Reference profiles matrix**                              |
+|------------------|------------|----------|------------------------------------------------------------|-----------------------------------------------------------------|------------------------------------------------------------|
+| **BlMIX**        | In vitro   | DNAm     | GSE77797                                                   | Figure 4a (DOI: 10.1186/s12859-016-0943-7)                      | GSE35069                                                   |
+| **BrMIX**        | In vitro   | RNA      | GSE220605                                                  | "Cell count" column, table S1 (DOI: 10.1186/s13059-023-03016-6) | GSE220605                                                  |
+| **PaMIX**        | In vitro   | DNAm     | TODO                                                       | TODO                                                            | TODO                                                       |
+| **PaMIX**        | In vitro   | RNA      | TODO                                                       | TODO                                                            | TODO                                                       |
+| **BlREAL1**      | In vivo    | RNA      | https://github.com/Honchkrow/Deconer_dataset (Linsley.rds) | https://github.com/Honchkrow/Deconer_dataset (Linsley.rds)      | https://github.com/Honchkrow/Deconer_dataset (Linsley.rds) |
+| **BlREAL2**      | In vivo    | DNAm     | GSE35069                                                   | DOI: 10.1371/journal.pone.0041361.s004                          | GSE35069                                                   |
+| **BlREAL3**      | In vivo    | DNAm     | GSE42861                                                   | Table S2 (DOI: 10.1038/nbt.2487)                                | GSE35069                                                   |
+| **BlREAL3**      | In vivo    | RNA      | GSE93722                                                   | Supplementary file 3A (DOI: 10.7554/eLife.26476 )               | EPIC::TRef                                                 |
+
 

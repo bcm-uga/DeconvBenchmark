@@ -108,6 +108,7 @@ Rscript compute_scores.R
 (b) The different figures of the paper can then be reproduced. For example, Figure 6 can be done by running:
 ```shell
 cd ranking_figures/figures/main_figs
+mkdir figure6
 Rscript figure6.R
 ```
 

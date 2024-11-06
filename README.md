@@ -9,17 +9,17 @@ title: Pipeline summary
 config:
   look: handDrawn
 ---
-flowchart TD
+flowchart LR
     a1("Reference profiles"):::red --"simulations"--> b1("In silico data"):::red
     subgraph Deconvolution["Deconvolution methods"]
-       direction LR
+       direction TD
        c1("Proportions"):::blue ~~~ c2("Time"):::blue
     end
     b1 --> Deconvolution
     b2("In vitro data"):::red --> Deconvolution
     b3("In vivo data"):::red --> Deconvolution
     subgraph Scoring["Scoring metrics"]
-       direction LR
+       direction TD
        d1("Ranks"):::green ~~~ d2("Figures"):::green
     end
     Deconvolution --"scoring"--> Scoring

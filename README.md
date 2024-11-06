@@ -105,7 +105,7 @@ cd ranking_figures/compute_metrics
 Rscript compute_scores.R
 ```
 
-(b) The different figures of the paper can then be reproduced. For example, Figure 6 can be done by running:
+(b) The different figures of the paper can then be reproduced. For example, and after modifying the ```folder``` variable to ```folder='figure6'```in the script figure6.R, Figure 6 can be done by running:
 ```shell
 cd ranking_figures/figures/main_figs
 mkdir figure6

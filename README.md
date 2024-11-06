@@ -3,6 +3,9 @@
 This repository contains all the files needed to perform deconvolution on example datasets, along with the ranking and the figures of the paper.
 Our pipeline can be easily extended to include and evaluate novel methods, as well as other datasets.
 
+[![](https://mermaid.ink/img/pako:eNqNUsFqxCAU_BWxlxY2kN3ePPS0FAotlN0eczH6TGSNhqduKcvut1eTbNqGFupJHee9mfGdqHASKKPKuHfRcgzkeVdZkhZf31Z0BwoQrADSo1PagK_oHWMMQZKiqKjXXTQ8aGcTUBQPpM6sJ0u8Nlo4InngM2Os62PdIO9bsgXh7NGZmOkjlpbIBV7R9Q6nspldmwjkcrkQsUnwm-7g636kgp3q12uShfxSvd6M2o464ELan5T7K-X4T8Zsby8catvMxuSQJ7eHyVKDAHbwJLOuR91EhO_YwtePXmP4U4ch-B_thOHeb0GRLNQntwdgN6osF-iQ6hUuS7WAR4Uzrkq6oh1gx7VME3PKrysaWsifwdJWcjxUtLLn9I7H4PYfVlAWMMKKootNez3EPkUJW81TUh1lihufbkHq4PBlnMdhLM-fHYTYTw?type=png)](https://mermaid.live/edit#pako:eNqNUsFqxCAU_BWxlxY2kN3ePPS0FAotlN0eczH6TGSNhqduKcvut1eTbNqGFupJHee9mfGdqHASKKPKuHfRcgzkeVdZkhZf31Z0BwoQrADSo1PagK_oHWMMQZKiqKjXXTQ8aGcTUBQPpM6sJ0u8Nlo4InngM2Os62PdIO9bsgXh7NGZmOkjlpbIBV7R9Q6nspldmwjkcrkQsUnwm-7g636kgp3q12uShfxSvd6M2o464ELan5T7K-X4T8Zsby8catvMxuSQJ7eHyVKDAHbwJLOuR91EhO_YwtePXmP4U4ch-B_thOHeb0GRLNQntwdgN6osF-iQ6hUuS7WAR4Uzrkq6oh1gx7VME3PKrysaWsifwdJWcjxUtLLn9I7H4PYfVlAWMMKKootNez3EPkUJW81TUh1lihufbkHq4PBlnMdhLM-fHYTYTw)
+
+
 ## How to make in silico data: folder [data](data/)
 
 Shortly, we made in silico data using reference profiles of pure cell types from different tissues convoluted with proportions generated based on a Dirichlet distribution. The scripts are in [simulation_scripts](data/simulation_scripts/), and the reference profiles can be downloaded from Zenodo (DOI 10.5281/zenodo.14024479).

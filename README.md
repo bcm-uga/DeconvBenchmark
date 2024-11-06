@@ -17,7 +17,7 @@ flowchart LR
     b1 --> Deconvolution
     b2("In vitro data"):::red --> Deconvolution
     b3("In vivo data"):::red --> Deconvolution
-    subgraph Scoring
+    subgraph Scoring["Scoring metrics"]
        d1("Ranks"):::green ~~~ d2("Figures"):::green
     end
     Deconvolution --"scoring"--> Scoring

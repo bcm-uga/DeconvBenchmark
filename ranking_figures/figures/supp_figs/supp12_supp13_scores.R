@@ -7,7 +7,6 @@ score_path = '../../compute_metrics/scores/'
 source("../generic_functions/load_scores_SB_silico.R")
 source("../generic_functions/load_scores_SB_invitro.R")
 source("../generic_functions/load_scores_SB_invivo.R")
-folder = strsplit(basename(rstudioapi::getSourceEditorContext()$path),".R")[[1]]
 
 ## ----
 ## Load libraries

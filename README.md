@@ -100,6 +100,7 @@ Results of the deconvolution, *i.e.* estimation of the proportion matrix along w
 To compute those metrics, simply run (with the date of your simulations in the compute_scores.R script):
 ```shell
 cd ranking_figures/compute_metrics
+mkdir scores
 Rscript compute_scores.R
 ```
 

@@ -13,7 +13,7 @@ conda activate YOUR_ENV
 
 ## Launch the Snakemake workflow
 - The parameter 'input_path' in the R scripts needs to be changed to the path where you stored the dataset to be deconvoluted.
-- In [Snakefile](Snakefile), the path YOUR/PROJECT/ROOT needs to be changed to the root path of your project in the shell command of the deconvoution rules.
+- In [Snakefile](Snakefile), the path YOUR/PROJECT/ROOT needs to be changed to the root path of your project in the shell command of the deconvoution rules, as well as the parameter DATE to match the date of the day you did your simulations.
 - Run the Snakefile
 ```shell
 snakemake --latency-wait 60 --cores 1 --jobs 50

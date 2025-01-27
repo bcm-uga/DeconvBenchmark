@@ -77,19 +77,13 @@ cd deconvolution
 sudo apptainer build container2.sif container2.def
 mkdir results
 mkdir results/prediction
-mkdir results/prediction/dnam
-mkdir results/prediction/dnam/sup
-mkdir results/prediction/dnam/unsup
-mkdir results/prediction/rna
-mkdir results/prediction/rna/sup
-mkdir results/prediction/rna/unsup
+mkdir results/prediction/dnam results/prediction/rna
+mkdir results/prediction/dnam/sup results/prediction/dnam/unsup
+mkdir results/prediction/rna/sup results/prediction/rna/unsup
 mkdir results/timing
-mkdir results/timing/dnam
-mkdir results/timing/dnam/sup
-mkdir results/timing/dnam/unsup
-mkdir results/timing/rna
-mkdir results/timing/rna/sup
-mkdir results/timing/rna/unsup
+mkdir results/timing/dnam results/timing/rna
+mkdir results/timing/dnam/sup results/timing/dnam/unsup
+mkdir results/timing/rna/sup results/timing/rna/unsup
 conda activate YOUR_VENV
 snakemake --latency-wait 60 --cores 1 --jobs 50
 ```

@@ -31,4 +31,4 @@ In case the user wants to add new methods, he/she should modify:
 - the parameter METHOD_OMIC_CLASS in the preamble of the [Snakefile](Snakefile),
 - the definition file [container2.def](container2.def) of the container if needed to add required packages to the container.
 
-Tu run the RNA methods that require TPM normalization (OLS, NNLS, SVR), the file with gene lengths "human_lengths.rds" is available upon request from the authors.
+To run the RNA methods that require TPM normalization (OLS, NNLS, SVR), the file with gene lengths "human_lengths.rds" is available upon request from the authors.

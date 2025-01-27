@@ -5,7 +5,7 @@ score_path = "../../compute_metrics/scores/"
 data_path = "../../../data/simulations/"
 deconv_path = "../../../deconvolution/results/prediction/"
 time_path = "../../../deconvolution/results/timing/"
-folder = strsplit(basename(rstudioapi::getSourceEditorContext()$path),".R")[[1]]
+folder = "figure8EFG"
 
 ## ----
 ## Load libraries

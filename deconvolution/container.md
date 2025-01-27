@@ -14,7 +14,7 @@ Once the definition file is ready the **container** can be built as a .sif file:
 sudo apptainer build container2.sif container2.def
 ```
 
-In the cluster you can run
+On the cluster you can run:
 ```shell
 apptainer build --remote container_test.sif container2.def
 ```

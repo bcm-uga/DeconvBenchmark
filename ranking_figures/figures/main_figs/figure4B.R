@@ -4,7 +4,7 @@
 date = "241025"
 score_path = "../../compute_metrics/scores/"
 source("../generic_functions/load_scores_SB_silico.R")
-folder = strsplit(basename(rstudioapi::getSourceEditorContext()$path),".R")[[1]]
+folder = "figure4B"
 
 custom_palette <- c("#D11141", "#F47F43", "#FFA500", "#FFD700", 
                     "#C0C0C0", "#808080", "darkolivegreen3", "darkolivegreen", 

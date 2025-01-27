@@ -4,7 +4,7 @@
 # choose a dataset, here BrCL1_sim01
 data_path = "../../../data/simulations/rna/"
 dataset = "BrCL1_sim01"
-folder = strsplit(basename(rstudioapi::getSourceEditorContext()$path),".R")[[1]]
+folder = "supp8"
 prop_ref0 = c(0.45, 0.1, 0.15, 0.3)
 alpha0 = c("3","10","30")
 alpha0_names = c("241025MoreDisp","241025","241025LessDisp")

@@ -1,7 +1,7 @@
 ## ----
 ## Set parameters, put your own
 ## ----
-folder = strsplit(basename(rstudioapi::getSourceEditorContext()$path),".R")[[1]]
+folder = "supp7"
 
 ## ----
 ## Load libraries

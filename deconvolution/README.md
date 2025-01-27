@@ -1,5 +1,5 @@
 ## Contents
-This folder contains 
+This folder contains:
 - a folder [scripts](scripts) with the R scripts for the deconvolution in each setting (class/omic),
 - the [Snakefile](Snakefile): this file should be adapted in order to do deconvolution on in vitro/vivo data or new datasets, or to run the pipeline with new methods (see below),
 - the definition file for the apptainer container [container2.def](container2.def), along with the [directions](container.md) to create the container file .sif from the definition file. The definition file can be updated to test new methods by adding necessary packages.

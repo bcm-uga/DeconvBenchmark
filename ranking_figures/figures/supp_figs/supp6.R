@@ -1,7 +1,7 @@
 ## ----
 ## Set parameters, put your own
 ## ----
-folder = strsplit(basename(rstudioapi::getSourceEditorContext()$path),".R")[[1]]
+folder = "supp6"
 
 custom_palette <- c("#D11141", "#F47F43", "#FFA500", "#FFD700", 
                     "#C0C0C0", "#808080", "darkolivegreen3", "darkolivegreen", 

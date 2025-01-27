@@ -11,7 +11,7 @@ n_permutations <- 1000
 source("../generic_functions/load_scores_SB_silico.R")
 source("../generic_functions/ranking_process.R")
 source("../generic_functions/ranking_pval.R")
-folder = strsplit(basename(rstudioapi::getSourceEditorContext()$path),".R")[[1]]
+folder = "figure5AB"
 
 meth_rna_sup = c("DeconRNASeq", "nnls", "ols","svr","CIBERSORT", "elasticnet", "rlr","WISP", "InstaPrism", "fardeep", "fardeepsto")
 meth_rna_unsup = c("ICA", "NMF", "PREDE", "debCAM", "CDSeq")

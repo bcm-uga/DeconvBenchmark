@@ -32,12 +32,6 @@ flowchart LR
 
 Shortly, we prepared in silico data using reference profiles of pure cell types from different tissues convoluted with proportions generated based on a Dirichlet distribution. The scripts are in [simulation_scripts](data/simulation_scripts/), and the reference profiles can be downloaded from Zenodo (DOI 10.5281/zenodo.14024479).
 
-For example, to generate the simulations for the BlCL dataset, simply run:
-```shell
-cd data/simulation_scripts
-Rscript generate_simu_BlCL.R
-```
-
 The folder [data](data/) has the following architecture:
 ```
 .
@@ -58,6 +52,12 @@ The folder [data](data/) has the following architecture:
 │   │   ├── 240101_DATA2_sim01.rds
 │   │   └── 240101_DATA2_sim02.rds
 ...
+```
+
+For example, to generate the simulations for the BlCL dataset, load the references from Zenodo, put them in the directory data/references, and simply run:
+```shell
+cd data/simulation_scripts
+Rscript generate_simu_BlCL.R
 ```
 
 This is also where we store the *in vitro* and *in vivo* datasets: ```data/invitro/DATA_A.rds``` for the proportion matrix and ```data/invitro/DATA_D_OMIC.rds``` for the methylation/expression matrix. Please refer to the table [here](data/README.md) for the instructions on where to download *in vitro* and *in vivo* data.

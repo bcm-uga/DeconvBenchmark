@@ -71,7 +71,7 @@ This pipeline uses an Apptainer container and Snakemake. Instructions on how to 
 
 Briefly, this folder contains the scripts to perform the deconvolution pipeline. There is one script per setting (class of the method/omic type). Those scripts can be modified to include new methods and/or new datasets (cf [README](deconvolution/README.md)).
 
-To build the container and run this pipeline, and after creating a virtual environment YOUR_VENV with snakemake installed on it:
+To build the container and run this pipeline, and after creating a virtual environment YOUR_VENV with snakemake installed on it, you can run (update the DATE parameter in the Snakefile with the date of your simulations):
 ```shell
 cd deconvolution
 sudo apptainer build container2.sif container2.def
@@ -97,7 +97,7 @@ Results of the deconvolution, *i.e.* estimation of the proportion matrix along w
 
 (a) First, you can compute the different metrics (in our case, RMSE, MAE and Pearson correlation coefficients): just run the script [compute_scores.R](ranking_figures/compute_metrics/compute_scores.R) and the scores will be stored in ```compute_metrics/scores/```: one file for the time (```..._time.rds```) and one file for the other metrics (```..._scores.rds```)
 
-To compute those metrics, simply run:
+To compute those metrics, simply run (with the date of your simulations in the compute_scores.R script):
 ```shell
 cd ranking_figures/compute_metrics
 Rscript compute_scores.R

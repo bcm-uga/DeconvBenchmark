@@ -2,7 +2,7 @@
 ## Set parameters, put your own
 ## Run script supp12_supp13_scores.R first
 ## ----
-folder = strsplit(basename(rstudioapi::getSourceEditorContext()$path),".R")[[1]]
+folder = "supp12_supp13"
 
 ## ----
 ## Load libraries

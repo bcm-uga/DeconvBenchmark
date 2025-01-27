@@ -1,7 +1,7 @@
 # A robust workflow to benchmark deconvolution of multi-omic data
 
-This repository contains all the scripts and files needed to perform deconvolution on example datasets, along with the ranking and the figures of the paper.
-Our pipeline can be easily extended to include and evaluate novel methods, as well as other datasets.
+This repository contains all the scripts and files needed to perform deconvolution and ranking on example datasets, along with the scripts to reproduce the figures of the paper.
+Our pipeline can easily be extended to include and evaluate novel methods, as well as other datasets.
 
 ```mermaid
 ---

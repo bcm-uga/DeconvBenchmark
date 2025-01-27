@@ -6,7 +6,7 @@ data_path = "../../../data/simulations/"
 deconv_path = "../../../deconvolution/results/prediction/"
 date = "241025"
 n_sim = 10
-folder = strsplit(basename(rstudioapi::getSourceEditorContext()$path),".R")[[1]]
+folder = "figure6"
 source("../../compute_metrics/generic_functions_metrics.R")
 
 rare_cell_types <- list(

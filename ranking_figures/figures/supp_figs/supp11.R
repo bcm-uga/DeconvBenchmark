@@ -4,7 +4,7 @@
 ref_path = "../../../data/references/"
 dataset_rna = c('BrCL1','BrCL2','BlCL','PaCL1','PaCL2','BrMIX','PaMIX','BlREAL1','SkREAL')
 dataset_dnam = c('BrCL1','LuCL','PaCL1','PaCL2','BlMIX','PaMIX','BlREAL2','BlREAL3')
-folder = strsplit(basename(rstudioapi::getSourceEditorContext()$path),".R")[[1]]
+folder = "supp11"
 
 ## ----
 ## Load libraries

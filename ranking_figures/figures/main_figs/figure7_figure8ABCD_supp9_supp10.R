@@ -3,7 +3,7 @@
 ## ----
 score_path = "../../compute_metrics/scores/"
 date = '241025'
-folder = strsplit(basename(rstudioapi::getSourceEditorContext()$path),".R")[[1]]
+folder = "figure7_figure8ABCD_supp9_supp10"
 source("../generic_functions/ranking_process.R")
 source("../generic_functions/load_scores_SB_silico.R")
 source("../generic_functions/load_scores_SB_invitro.R")

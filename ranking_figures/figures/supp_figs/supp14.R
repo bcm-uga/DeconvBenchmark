@@ -5,7 +5,7 @@ date = "241025"
 score_path = "../../compute_metrics/scores/"
 n_candidates = 2
 source("../generic_functions/ranking_process.R")
-folder = strsplit(basename(rstudioapi::getSourceEditorContext()$path),".R")[[1]]
+folder = "supp14"
 
 custom_palette <- c("#D11141", "#F47F43", "#FFA500", "#FFD700", 
                     "#C0C0C0", "#808080", "darkolivegreen3", "darkolivegreen", 

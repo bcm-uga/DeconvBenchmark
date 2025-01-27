@@ -5,7 +5,7 @@ date = "241025"
 score_path = "../../compute_metrics/scores/"
 source("../generic_functions/load_scores_SB_silico.R")
 source("../generic_functions/ranking_process.R")
-folder = strsplit(basename(rstudioapi::getSourceEditorContext()$path),".R")[[1]]
+folder = "supp3_supp4"
 
 meth_rna_sup = c("DeconRNASeq", "nnls", "ols","svr","CIBERSORT", "elasticnet", "rlr","WISP", "InstaPrism", "fardeep", "fardeepsto")
 meth_rna_unsup = c("ICA", "NMF", "PREDE", "debCAM", "CDSeq")

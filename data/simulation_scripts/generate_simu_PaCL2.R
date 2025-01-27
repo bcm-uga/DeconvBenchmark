@@ -1,6 +1,5 @@
 set.seed(0)
-#today=format(Sys.Date(), format="%y%m%d")
-today="241025"
+today=format(Sys.Date(), format="%y%m%d")
 
 ## ----
 ## Add libs

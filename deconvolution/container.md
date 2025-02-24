@@ -1,8 +1,9 @@
 # Using an Apptainer container
 
-Containers allow to package together libraries and other dependencies, providing isolated environments. Apptainer is an HPC friendly alternative to Docker.
+Containers allow to package together libraries and other dependencies, providing isolated environments. Apptainer (previously Singularuty) is an HPC friendly alternative to Docker.
 
-[Full documentation](https://docs.sylabs.io/guides/main/user-guide/index.html)
+[Apptainer documentation](https://apptainer.org/documentation/)
+[Singularity documentation](https://docs.sylabs.io/guides/main/user-guide/index.html)
 
 ## Building a container
 

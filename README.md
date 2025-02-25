@@ -75,15 +75,7 @@ To build the container and run this pipeline, and after creating a virtual envir
 ```shell
 cd deconvolution
 sudo apptainer build container2.sif container2.def
-mkdir results
-mkdir results/prediction
-mkdir results/prediction/dnam results/prediction/rna
-mkdir results/prediction/dnam/sup results/prediction/dnam/unsup
-mkdir results/prediction/rna/sup results/prediction/rna/unsup
-mkdir results/timing
-mkdir results/timing/dnam results/timing/rna
-mkdir results/timing/dnam/sup results/timing/dnam/unsup
-mkdir results/timing/rna/sup results/timing/rna/unsup
+mkdir -p results/prediction/rna/sup results/prediction/rna/unsup results/prediction/dnam/sup results/prediction/dnam/unsup results/timing/rna/sup results/timing/rna/unsup results/timing/dnam/sup results/timing/dnam/unsup
 conda activate YOUR_VENV
 snakemake --latency-wait 60 --cores 1 --jobs 50
 ```

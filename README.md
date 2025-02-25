@@ -70,7 +70,7 @@ This pipeline uses an Apptainer container (previously Singularity) and Snakemake
 
 Briefly, this folder contains the scripts to perform the deconvolution pipeline. There is one script per setting (class of the method/omic type). Those scripts can be modified to include new methods and/or new datasets (cf [README](deconvolution/README.md)).
 
-To build the container and run this pipeline, and after creating a virtual environment YOUR_VENV with snakemake installed on it, you can run (update the DATE parameter in the Snakefile with the date of your simulations):
+To build the container and run this pipeline, and after creating a virtual environment YOUR_VENV with snakemake installed on it, you can run (update the DATE parameter in the Snakefile with the date of your simulations and the PATH of the --bind argument in the SHELL command of the Snakefile):
 ```shell
 cd deconvolution
 sudo apptainer build container2.sif container2.def

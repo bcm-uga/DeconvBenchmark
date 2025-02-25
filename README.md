@@ -57,8 +57,7 @@ The folder [data](data/) has the following architecture:
 For example, to generate the simulations for the BlCL dataset, load the references from Zenodo, put them in the directory data/references, and simply run:
 ```shell
 cd data
-mkdir simulations
-mkdir simulations/rna simulations/dnam
+mkdir -p simulations/rna simulations/dnam
 cd simulation_scripts
 Rscript generate_simu_BlCL.R
 ```

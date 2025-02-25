@@ -54,12 +54,12 @@ The folder [data](data/) has the following architecture:
 ...
 ```
 
-For example, to generate the simulations for the BlCL dataset, load the references from Zenodo, put them in the directory data/references, and simply run:
+For example, to generate the simulations for the BrCL1 dataset, load the references from Zenodo, put them in the directory data/references, and simply run:
 ```shell
 cd data
 mkdir -p simulations/rna simulations/dnam
 cd simulation_scripts
-Rscript generate_simu_BlCL.R
+Rscript generate_simu_BrCL1.R
 ```
 
 This is also where we store the *in vitro* and *in vivo* datasets: ```data/invitro/DATA_A.rds``` for the proportion matrix and ```data/invitro/DATA_D_OMIC.rds``` for the methylation/expression matrix. Please refer to the table [here](data/README.md) for the instructions on where to download *in vitro* and *in vivo* data.

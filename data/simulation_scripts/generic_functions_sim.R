@@ -74,7 +74,7 @@ add_noise <- function(result, p, sd_rna=1, sd_dnam=3) {
 
 add_noise_nb = function(dt, p, sd) {
   delta = matrix(rnorm(prod(dim(dt)), mean=0, sd=sd), nrow=nrow(dt))
-  mu_i_0 = dt/colSums(dt) * mean(colSums(dt))
+  mu_i_0 = t(t(dt)/colSums(dt)) * mean(colSums(dt))
   sigma_i = (1.8*p + 1/sqrt(mu_i_0))*exp(delta/2)
   shape = 1/(sigma_i^2)
   scale = mu_i_0/(shape + .Machine$double.eps)

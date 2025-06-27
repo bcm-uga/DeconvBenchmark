@@ -90,3 +90,80 @@ add_noise_gaussian = function(dt, sd, mean=0) {
   data_noise = dt + noise
   return(data_noise)
 }
+
+add_noise_copula <- function(test_data_rna=NULL, ref_rna=NULL, test_data_met=NULL, ref_met=NULL, ground_truth) {
+  N = ncol(ground_truth)
+  # compute empirical copula and add noise
+  if (!is.null(test_data_rna)) {
+    epsilon_rna = test_data_rna - ref_rna %*% ground_truth
+    epsilon_rna_center = epsilon_rna - tcrossprod(rowMeans(epsilon_rna), rep(1,N))
+    epsilon_rna_scal = epsilon_rna_center/max(1e-8,tcrossprod(sqrt(rowMeans(epsilon_rna_center^2)),rep(1,N)))
+    epsilon_rna_pobs = pobs(t(epsilon_rna_scal))
+    rownames(epsilon_rna_pobs) = NULL
+    fitted_copula_rna = empCopula(epsilon_rna_pobs)
+    noise_rna_wo_marg = t(rCopula(N, fitted_copula_rna))
+
+    noise_rna = t(sapply(1:nrow(noise_rna_wo_marg), function(line_i) {
+      if (min(epsilon_rna[line_i,])<0) {
+        tmp_eps = epsilon_rna[line_i,] - min(epsilon_rna[line_i,])
+      } else {tmp_eps = epsilon_rna[line_i,]}
+      mean_data = mean(tmp_eps)
+      var_data = var(tmp_eps)*(N - 1)/N # unbiased variance
+      size_estim = mean_data^2 / max(1e-8,(var_data - mean_data))
+      if (size_estim <= 0) { # always with very low data
+        size_estim = 0.5
+      }
+      eps_i = stats::qnbinom(noise_rna_wo_marg[line_i,], size = size_estim, mu = mean_data)
+      if (min(epsilon_rna[line_i,])<0) {
+        eps_i = eps_i - mean(eps_i) + mean(epsilon_rna[line_i,])
+      }
+      eps_i}))
+    rownames(noise_rna) = rownames(noise_rna_wo_marg)
+  
+    test_data_rna = test_data_rna + noise_rna
+
+    which_gene_neg = apply(test_data_rna, 1, \(gene_i){any(gene_i<0)})
+    which_gene_neg = names(which_gene_neg[which(which_gene_neg)])
+    for (gene_i in which_gene_neg) {
+      test_data_rna[gene_i,] = test_data_rna[gene_i,] - min(test_data_rna[gene_i,]) + runif(N, min = 0, max = 1e-3)
+    }
+  }
+  if (!is.null(test_data_met)) {
+    ref_met[ref_met==0]
+    bet_val = test_data_met
+    bet_val[bet_val==0] = 1e-8
+    m_val = log2(bet_val/(1-bet_val))
+    epsilon_met = m_val - log2(ref_met/(1-ref_met)) %*% ground_truth
+    epsilon_met_center = epsilon_met - tcrossprod(rowMeans(epsilon_met), rep(1,N))
+    epsilon_met_scal = epsilon_met_center/max(1e-8,tcrossprod(sqrt(rowMeans(epsilon_met_center^2)),rep(1,N)))
+    epsilon_met_pobs = pobs(t(epsilon_met_scal))
+    rownames(epsilon_met_pobs) = NULL
+    fitted_copula_met = empCopula(epsilon_met_pobs)
+    noise_met_wo_marg = t(rCopula(N, fitted_copula_met))
+    
+    noise_met = t(pbapply::pbsapply(1:nrow(noise_met_wo_marg), function(ligne_i) {
+      if (min(epsilon_met[ligne_i,])<0) {
+        tmp_eps = epsilon_met[ligne_i,] - min(epsilon_met[ligne_i,])
+      } else {
+        tmp_eps = epsilon_met[ligne_i,]
+      }
+      mean_data = mean(tmp_eps)
+      var_data = var(tmp_eps)*(N - 1)/N # unbiased variance
+      eps_i = qnorm(noise_met_wo_marg[ligne_i,], mean = mean_data, sd = var_data)
+      if (min(epsilon_met[ligne_i,])<0) {
+        eps_i = eps_i - mean(eps_i) + mean(epsilon_met[ligne_i,])
+      }
+      eps_i}))
+    rownames(noise_met) = rownames(noise_met_wo_marg)
+    
+    m_val = m_val + noise_met
+    beta_val <- 2^m_val/(2^m_val+1)
+    beta_val[beta_val<0] <- test_data_met[beta_val<0]
+    beta_val[beta_val>1] <- test_data_met[beta_val>1]
+  }
+
+  if (!is.null(test_data_rna) & !is.null(test_data_met)) {return(list(test_data_rna, beta_val))}
+  else if (is.null(test_data_rna) & !is.null(test_data_met)) {return(beta_val)}
+  else if (!is.null(test_data_rna) & is.null(test_data_met)) {return(test_data_rna)}
+}
+

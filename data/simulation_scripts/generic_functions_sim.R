@@ -91,11 +91,11 @@ add_noise_gaussian = function(dt, sd, mean=0) {
   return(data_noise)
 }
 
-add_noise_copula <- function(test_data_rna=NULL, ref_rna=NULL, test_data_met=NULL, ref_met=NULL, ground_truth) {
-  N = ncol(ground_truth)
+add_noise_copula <- function(result, T_rna=NULL, T_dnam=NULL) {
+  N = ncol(result$Amat)
   # compute empirical copula and add noise
-  if (!is.null(test_data_rna)) {
-    epsilon_rna = test_data_rna - ref_rna %*% ground_truth
+  if (!is.null(result$Drna)) {
+    epsilon_rna = result$Drna - T_rna %*% result$Amat
     epsilon_rna_center = epsilon_rna - tcrossprod(rowMeans(epsilon_rna), rep(1,N))
     epsilon_rna_scal = epsilon_rna_center/max(1e-8,tcrossprod(sqrt(rowMeans(epsilon_rna_center^2)),rep(1,N)))
     epsilon_rna_pobs = pobs(t(epsilon_rna_scal))
@@ -120,20 +120,20 @@ add_noise_copula <- function(test_data_rna=NULL, ref_rna=NULL, test_data_met=NUL
       eps_i}))
     rownames(noise_rna) = rownames(noise_rna_wo_marg)
   
-    test_data_rna = test_data_rna + noise_rna
+    result$Drna = result$Drna + noise_rna
 
-    which_gene_neg = apply(test_data_rna, 1, \(gene_i){any(gene_i<0)})
+    which_gene_neg = apply(result$Drna, 1, \(gene_i){any(gene_i<0)})
     which_gene_neg = names(which_gene_neg[which(which_gene_neg)])
     for (gene_i in which_gene_neg) {
-      test_data_rna[gene_i,] = test_data_rna[gene_i,] - min(test_data_rna[gene_i,]) + runif(N, min = 0, max = 1e-3)
+      result$Drna[gene_i,] = result$Drna[gene_i,] - min(result$Drna[gene_i,]) + runif(N, min = 0, max = 1e-3)
     }
   }
-  if (!is.null(test_data_met)) {
-    ref_met[ref_met==0]
-    bet_val = test_data_met
+  if (!is.null(result$Ddnam)) {
+    T_dnam[T_dnam==0]
+    bet_val = result$Ddnam
     bet_val[bet_val==0] = 1e-8
     m_val = log2(bet_val/(1-bet_val))
-    epsilon_met = m_val - log2(ref_met/(1-ref_met)) %*% ground_truth
+    epsilon_met = m_val - log2(T_dnam/(1-T_dnam)) %*% result$Amat
     epsilon_met_center = epsilon_met - tcrossprod(rowMeans(epsilon_met), rep(1,N))
     epsilon_met_scal = epsilon_met_center/max(1e-8,tcrossprod(sqrt(rowMeans(epsilon_met_center^2)),rep(1,N)))
     epsilon_met_pobs = pobs(t(epsilon_met_scal))
@@ -158,12 +158,11 @@ add_noise_copula <- function(test_data_rna=NULL, ref_rna=NULL, test_data_met=NUL
     
     m_val = m_val + noise_met
     beta_val <- 2^m_val/(2^m_val+1)
-    beta_val[beta_val<0] <- test_data_met[beta_val<0]
-    beta_val[beta_val>1] <- test_data_met[beta_val>1]
+    beta_val[beta_val<0] <- result$Ddnam[beta_val<0]
+    beta_val[beta_val>1] <- result$Ddnam[beta_val>1]
+    result$Ddnam = beta_val
   }
 
-  if (!is.null(test_data_rna) & !is.null(test_data_met)) {return(list(test_data_rna, beta_val))}
-  else if (is.null(test_data_rna) & !is.null(test_data_met)) {return(beta_val)}
-  else if (!is.null(test_data_rna) & is.null(test_data_met)) {return(test_data_rna)}
+  return(result)
 }
 

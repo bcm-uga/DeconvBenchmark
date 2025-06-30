@@ -43,6 +43,7 @@ featselec_toast <- function(dat, k) {
 prism.states <- function(dat, ref_profiles, nCores = threads) {
   ncores <- nCores - 1
   dat <- prism.met.to.count(dat) # transform DNAm data to pseudo counts
+  ref_profiles <- prism.met.to.count(ref_profiles) # transform DNAm data to pseudo counts
   # define types and states
   state_labels <- colnames(ref_profiles)
   type_labels <- state_labels

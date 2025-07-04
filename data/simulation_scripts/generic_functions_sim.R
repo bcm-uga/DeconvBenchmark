@@ -96,7 +96,7 @@ add_noise_copula <- function(result, empirical, T_rna=NULL, T_dnam=NULL) {
   if (!is.null(result$Drna)) {
     N = ncol(result$Drna)
     factor = ncol(result$Drna) / ncol(empirical$Amat)
-    epsilon_rna = empirical$Drna - T_rna %*% empirical$Amat
+    epsilon_rna = as.matrix(empirical$Drna - T_rna %*% empirical$Amat)
     epsilon_rna_center = do.call(cbind,replicate(factor, epsilon_rna, simplify=FALSE)) - tcrossprod(rowMeans(epsilon_rna), rep(1,N))
     epsilon_rna_scal = epsilon_rna_center/max(1e-8,tcrossprod(sqrt(rowMeans(epsilon_rna_center^2)),rep(1,N)))
     epsilon_rna_pobs = pobs(t(epsilon_rna_scal))

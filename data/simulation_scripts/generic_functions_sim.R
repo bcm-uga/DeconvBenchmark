@@ -106,7 +106,7 @@ add_noise_copula <- function(result, empirical, T_rna=NULL, T_dnam=NULL) {
 
     noise_rna = t(sapply(1:nrow(noise_rna_wo_marg), function(line_i) {
       if (min(epsilon_rna[line_i,])<0) {
-        tmp_eps = epsilon_rna[line_i,] - min(epsilon_rna[line_i,])
+        tmp_eps = c(epsilon_rna[line_i,] - min(epsilon_rna[line_i,]))
       } else {tmp_eps = epsilon_rna[line_i,]}
       mean_data = mean(tmp_eps)
       var_data = var(tmp_eps)*(N - 1)/N # unbiased variance

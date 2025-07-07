@@ -71,7 +71,7 @@ score_SB_silico <- function(data_path, deconv_path, score_path, date, score_meth
     for (meth_class in meth_classes) {
       print(paste0("class ",meth_class))
       # for all datasets
-      df_class[[meth_class]] <- do.call(rbind,lapply(datasets, function(Data) {
+      df_class[[meth_class]] <- lapply(datasets, function(Data) {
         print(paste0("**  ",Data,"  **"))
         sim_files <- list.files(paste0(data_path,block), pattern = paste0(date, "_", Data))
         # for all simulations
@@ -105,7 +105,9 @@ score_SB_silico <- function(data_path, deconv_path, score_path, date, score_meth
         }))
         df_dataset$dataset <- Data
         return(df_dataset)
-      }))
+      })
+      df_class = df_class[!is.null(df_class)]
+      df_class = do.call(rbind,df_class)
       df_class[[meth_class]]$class = meth_class
     }
     df_block[[block]] = do.call(rbind,df_class)

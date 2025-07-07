@@ -95,10 +95,10 @@ add_noise_copula <- function(result, empirical, T_rna=NULL, T_dnam=NULL) {
   # compute empirical copula and add noise
   if (!is.null(result$Drna)) {
     N = ncol(result$Drna)
-    factor = ncol(result$Drna) / ncol(empirical$Amat)
+    N_emp = ncol(empirical$Amat)
     epsilon_rna = as.matrix(empirical$Drna - T_rna %*% empirical$Amat)
-    epsilon_rna_center = do.call(cbind,replicate(factor, epsilon_rna, simplify=FALSE)) - tcrossprod(rowMeans(epsilon_rna), rep(1,N))
-    epsilon_rna_scal = epsilon_rna_center/max(1e-8,tcrossprod(sqrt(rowMeans(epsilon_rna_center^2)),rep(1,N)))
+    epsilon_rna_center = epsilon_rna - tcrossprod(rowMeans(epsilon_rna), rep(1,N_emp))
+    epsilon_rna_scal = epsilon_rna_center/max(1e-8,tcrossprod(sqrt(rowMeans(epsilon_rna_center^2)),rep(1,N_emp)))
     epsilon_rna_pobs = pobs(t(epsilon_rna_scal))
     rownames(epsilon_rna_pobs) = NULL
     fitted_copula_rna = empCopula(epsilon_rna_pobs)
@@ -131,7 +131,7 @@ add_noise_copula <- function(result, empirical, T_rna=NULL, T_dnam=NULL) {
   }
   if (!is.null(result$Ddnam)) {
     N = ncol(result$Ddnam)
-    factor = ncol(result$Ddnam) / ncol(empirical$Amat)
+    N_emp = ncol(empirical$Amat)
     T_dnam[T_dnam==0]
     bet_val = result$Ddnam
     bet_val_empirical = empirical$Ddnam
@@ -139,8 +139,8 @@ add_noise_copula <- function(result, empirical, T_rna=NULL, T_dnam=NULL) {
     m_val = log2(bet_val/(1-bet_val))
     m_val_empirical = log2(bet_val_empirical/(1-bet_val_empirical))
     epsilon_met = m_val_empirical - log2(T_dnam/(1-T_dnam)) %*% empirical$Amat
-    epsilon_met_center = do.call(cbind,replicate(factor, epsilon_met, simplify=FALSE)) - tcrossprod(rowMeans(epsilon_met), rep(1,N))
-    epsilon_met_scal = epsilon_met_center/max(1e-8,tcrossprod(sqrt(rowMeans(epsilon_met_center^2)),rep(1,N)))
+    epsilon_met_center = epsilon_met - tcrossprod(rowMeans(epsilon_met), rep(1,N_emp))
+    epsilon_met_scal = epsilon_met_center/max(1e-8,tcrossprod(sqrt(rowMeans(epsilon_met_center^2)),rep(1,N_emp)))
     epsilon_met_pobs = pobs(t(epsilon_met_scal))
     rownames(epsilon_met_pobs) = NULL
     fitted_copula_met = empCopula(epsilon_met_pobs)

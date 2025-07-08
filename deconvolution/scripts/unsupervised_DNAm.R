@@ -15,7 +15,8 @@ featselec_K = list("BrCL1"=4,
                    "PaCL1"=5,
                    "PaCL2"=9,
                    "BlCL"=6,
-                   "LuCL"=9)
+                   "LuCL"=9,
+                   "PaPB"=7)
 
 #####
 # Functions
@@ -43,7 +44,7 @@ do_run_unsup_deconvolution = function(method, dat, Atrue, option=c("Amat","Tmat"
   k = nrow(Atrue)
   if (method=="MeDeCom") {library(MeDeCom, quietly=TRUE)}
   if (method=="NMF") {library(NMF)}
-  tic(method)
+  tictoc::tic(method)
   if (method=="MeDeCom") {
     res <- MeDeCom::runMeDeCom(dat, Ks=k, lambdas=c(0,10^(-4:-1)), NINIT=10, NFOLDS=10, ITERMAX=300, NCORES=threads, random.seed=1)
     lambda <- res@parameters$lambdas[which.min(res@outputs$`1`$cve)]
@@ -107,7 +108,7 @@ do_run_unsup_deconvolution = function(method, dat, Atrue, option=c("Amat","Tmat"
     res = list(A_matrix = t(debCAM::Amat(rCAM, k)),
                T_matrix = debCAM::Smat(rCAM, k))
   }
-  time_elapsed=toc()
+  time_elapsed = tictoc::toc()
   time_elapsed = time_elapsed$toc - time_elapsed$tic
   #if (option=="Tmat") {
   #  hvg=TOAST::findRefinx(ref_profiles, nmarker = 1e3)
@@ -136,6 +137,7 @@ SB_deconv_data_method_sim <- function(data, omic, method, method_class, sim, dat
   input_path <- paste0(input_path, omic, "/")
   # read files
   list_files = list.files(input_path_ref, pattern = paste0(data), full.names = T)
+  if (length(grep("_sc",list_files))>0) {list_files = list_files[-grep("_sc",list_files)]}
   if (length(list_files)>1) {list_files = grep(omic,list_files,value = T)}
   ref_profiles <- as.data.frame(readRDS(list_files))
   sim_files <- sort(list.files(input_path, pattern = paste0(date, "_", data, "_sim")))

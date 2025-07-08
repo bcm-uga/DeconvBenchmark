@@ -16,7 +16,8 @@ featselec_K = list("BrCL1"=4,
                    "PaCL1"=5,
                    "PaCL2"=9,
                    "BlCL"=6,
-                   "LuCL"=9)
+                   "LuCL"=9,
+                   "PaPB"=7)
 
 #####
 # Functions
@@ -52,14 +53,15 @@ prism.states <- function(dat, ref_profiles, nCores = threads) {
   ## BrCL1: types and states are equals, tumoral type label is "tumor"
   ## PaCL1: 2 tumoral states, 1 tumoral type
   type_labels[grepl("TUM_", type_labels)] <- "tumor"
-  ## PaCL2: 2 tumoral states, 1 tumoral type
-  type_labels[grepl("Cancer ", type_labels)] <- "tumor"
+  ## PaCL2 and PaPB: 2 tumoral states, 1 tumoral type
+  type_labels[grepl("Cancer", type_labels)] <- "tumor"
   ## LuCL: 1 tumoral state and type
   type_labels[grepl("A549", type_labels)] <- "tumor"
   ## BrCL2: 3 tumoral states, 1 tumoral type
   type_labels[grepl("BT474", type_labels)] <- "tumor"
   type_labels[grepl("MCF7", type_labels)] <- "tumor"
   type_labels[grepl("T47D", type_labels)] <- "tumor"
+  
   
   prism <- BayesPrism::new.prism(
       reference = base::t(ref_profiles),
@@ -81,7 +83,7 @@ prism.states <- function(dat, ref_profiles, nCores = threads) {
   ## Deaggregate variable types
   tumoral_states_mask <- state_labels == "tumor" |
     grepl("TUM_", state_labels) |
-    grepl("Cancer ", state_labels) |
+    grepl("Cancer", state_labels) |
     grepl("A549", state_labels) |
     grepl("BT474", state_labels) |
     grepl("MCF7", state_labels) |
@@ -113,7 +115,7 @@ prism.met.to.count <- function(dat, factor = 1000) {
 
 do_run_sup_deconvolution <- function(method, dat, ref_profiles, threads=32) {
   if (method == 'InstaPrism') {library(InstaPrism)}
-  tic(method)
+  tictoc::tic(method)
   if (method=="rlr") {
     beta.m = dat
     ref.m = as.matrix(ref_profiles)
@@ -144,7 +146,7 @@ do_run_sup_deconvolution <- function(method, dat, ref_profiles, threads=32) {
   else if (method=="InstaPrism") {
     res <- prism.states(dat, ref_profiles, nCores = threads)
   }
-  time_elapsed = toc()
+  time_elapsed = tictoc::toc()
   time_elapsed = time_elapsed$toc - time_elapsed$tic
   return(list(res=res,time_elapsed=time_elapsed))
 }
@@ -155,6 +157,7 @@ SB_deconv_data_method_sim <- function(data, omic, method, method_class, sim, dat
   input_path <- paste0(input_path, omic, "/")
   # read files
   list_files = list.files(input_path_ref, pattern = paste0(data), full.names = T)
+  if (length(grep("_sc",list_files))>0) {list_files = list_files[-grep("_sc",list_files)]}
   if (length(list_files)>1) {list_files = grep(omic,list_files,value = T)}
   ref_profiles <- as.data.frame(readRDS(list_files))
   sim_files <- sort(list.files(input_path, pattern = paste0(date, "_", data, "_sim")))

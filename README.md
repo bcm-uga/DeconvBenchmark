@@ -30,7 +30,7 @@ flowchart LR
 
 ## How to make in silico data: folder [data](data/)
 
-Shortly, we prepared in silico data using reference profiles of pure cell types from different tissues, as well as labelled and "pseudo-bulk-ised" scRNAseq data, convoluted with proportions generated based on a Dirichlet distribution. The scripts are in [simulation_scripts](data/simulation_scripts/), and the reference profiles can be downloaded from Zenodo (DOI 10.5281/zenodo.14024479).
+Shortly, we prepared in silico data using reference profiles of pure cell types from different tissues, as well as labelled and "pseudo-bulk-ised" scRNAseq data, convoluted with proportions generated based on a Dirichlet distribution. The scripts are in [simulation_scripts](data/simulation_scripts/), and the reference profiles can be downloaded from Zenodo (DOI 10.5281/zenodo.15835454).
 
 The folder [data](data/) has the following architecture:
 ```

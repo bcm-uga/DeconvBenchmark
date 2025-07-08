@@ -48,7 +48,7 @@ generate_simu_pb <- function(data_sc, n_samples, alpha, varCrit=10) {
 ## Load data using your own path and cell types
 ## ----
 print("-> Loading data...")
-sc_data = readRDS("~/projects/datashare/pancreas_deconv_data/results/20210624/02.1_output/peng_pool_labelled.rds")
+sc_data = readRDS("../references/PaPB_sc.rds")
 cells_keep = c("B cells","T cells","Endothelial","Fibroblasts","Macrophages","Cancer basal","Cancer classical")
 sc_data$label_full[sc_data$label_full == "Endothelial cells"] = "Endothelial"
 sc_data$label_full[sc_data$label_full == "Fibro/Stellate"] = "Fibroblasts"

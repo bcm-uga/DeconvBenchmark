@@ -30,7 +30,7 @@ flowchart LR
 
 ## How to make in silico data: folder [data](data/)
 
-Shortly, we prepared in silico data using reference profiles of pure cell types from different tissues convoluted with proportions generated based on a Dirichlet distribution. The scripts are in [simulation_scripts](data/simulation_scripts/), and the reference profiles can be downloaded from Zenodo (DOI 10.5281/zenodo.14024479).
+Shortly, we prepared in silico data using reference profiles of pure cell types from different tissues, as well as labelled and "pseudo-bulk-ised" scRNAseq data, convoluted with proportions generated based on a Dirichlet distribution. The scripts are in [simulation_scripts](data/simulation_scripts/), and the reference profiles can be downloaded from Zenodo (DOI 10.5281/zenodo.14024479).
 
 The folder [data](data/) has the following architecture:
 ```
@@ -54,7 +54,7 @@ The folder [data](data/) has the following architecture:
 ...
 ```
 
-For example, to generate the simulations for the BrCL1 dataset, load the references from Zenodo, put them in the directory data/references, and simply run:
+For example, to generate the simulations for the BrCL1 dataset, load the references from Zenodo, put them in the folder data/references/, and run:
 ```shell
 cd data
 mkdir -p simulations/rna simulations/dnam
@@ -80,7 +80,7 @@ snakemake --latency-wait 60 --cores 1 --jobs 50
 ```
 
 Snakemake will run all methods for all omics. To run the RNA methods that require TPM normalization (OLS, NNLS, SVR), the file with gene lengths "human_lengths.rds" is available upon request from the authors.
-The [Snakefile](deconvolution/Snakefile) is self-explanatory and can be modified to include new methods/datasets. In general, you can refer to the [README](deconvolution/README.md) to know how to test new methods/datasets.
+The [Snakefile](deconvolution/Snakefile) is self-explanatory and can be modified to include new methods/datasets. In general, you can refer to the [README](deconvolution/README.md) for explanations on how to test new methods/datasets.
 
 Results of the deconvolution, *i.e.* estimation of the proportion matrix along with elapsed time will be stored in ```deconvolution/results/prediction/OMIC/CLASS/``` for the proportion matrix and ```deconvolution/results/timing/OMIC/CLASS/``` for the time elapsed with the syntax ```240101_DATA1_Apred_FS_METHOD_sim01.rds``` / ```240101_DATA1_timing_FS_METHOD_sim01.rds``` (FS being the feature selection strategy and METHOD the deconvolution algorithm).
 

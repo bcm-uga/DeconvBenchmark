@@ -51,6 +51,10 @@ The folder [data](data/) has the following architecture:
 │   ├── rna
 │   │   ├── 240101_DATA2_sim01.rds
 │   │   └── 240101_DATA2_sim02.rds
+├── invitro
+│   ├── DATA1_A.rds
+│   ├── DATA1_D_dnam.rds
+│   └── DATA2_A.rds
 ...
 ```
 

@@ -1,5 +1,5 @@
 The folder [simulation_scripts](simulation_scripts) contains the scripts to do the simulations (generate_simu_DATASET.R), as well as the script to generate a reference with an additional artificial cell type.
-The simulations scripts will load a reference from the folder "references/" and create simulations with the date of the day in a folder called "simulations/"
+The simulations scripts will load a reference from the folder "references/" and create simulations with the date of the day in a folder called "simulations/". For the pseudo-bulk simulation, it will load the scRNAseq dataset in "references/DATA_sc.rds" and write the matching reference required for supervised deconvolution in "references/DATA.rds".
 
 The reference matrices used for the *in silico* data, as well as the labelled scRNAseq dataset, can be downloaded from Zenodo (DOI 10.5281/zenodo.15835454).
 

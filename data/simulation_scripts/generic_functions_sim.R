@@ -1,3 +1,5 @@
+library(copula)
+
 generate_proportions <- function(n_samples, celltypes, alph, varCrit, dataset_pdac) {
   # Compute proportions of various compartments
   if (! dataset_pdac) {

@@ -43,6 +43,7 @@ The folder [data](data/) has the following architecture:
 │   ├── DATA2_dnam.rds
 │   └── DATA2_rna.rds
 │   └── DATA3_sc.rds
+│   └── DATA3.rds
 ├── simulations
 │   ├── dnam
 │   │   ├── 240101_DATA1_sim01.rds

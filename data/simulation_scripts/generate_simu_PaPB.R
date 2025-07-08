@@ -57,7 +57,7 @@ sc_data$label_full[sc_data$label_full == "Basal"] = "Cancer basal"
 sc_data$label_full[sc_data$label_full == "Classic"] = "Cancer classical"
 sc_data <- subset(sc_data, subset = label_full %in% cells_keep)
 
-T_all <- readRDS("../references/PaCL2.rds")
+T_all <- readRDS("../references/PaCL2_rna.rds")
 # Merge T cells and remove neutrophils
 T_rna = data.frame(T_all[,c("B cells", "Cancer basal", "Cancer classical", "Endothelial", "Fibroblasts", "Macrophages")])
 T_tcell = data.frame("T cells" = rowMeans(T_all[,c("CD4 T cells","CD8 T cells")]))

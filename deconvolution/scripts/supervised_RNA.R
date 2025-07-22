@@ -194,6 +194,11 @@ do_run_sup_deconvolution = function(method, dat, ref_profiles, threads=32) {
     ref.m = as.matrix(ref_profiles)
     res <- t(epidish(beta.m, ref.m, method = "CBS")$estF)
   }
+  else if (method == "CIBERsource") {
+    source("scripts/CIBERSORT.R")
+    res = CIBERSORT(ref_profiles, dat) 
+    res = t(res[,colnames(ref_profiles)])
+  }
   else if (method=="WISP") {
     getWeight = function(data, centro, scaling = c("none", "scale", "center")[1], cutoff_gobalFtest = 0.05, Rsquared_cutoff = 0.5, cutoff_ttest_weights = 0.05, sum_LessThanOne = TRUE) {
       g = intersect(rownames(data), rownames(centro))

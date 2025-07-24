@@ -134,10 +134,15 @@ do_run_sup_deconvolution <- function(method, dat, ref_profiles, threads=32) {
       x / sum(x)) #explicit STO constraint
     res <- res[, colnames(dat)]
   }
-  else if (method=="CIBERSORT") {
+  else if (method=="CIBERSORTepidish") {
     beta.m = dat
     ref.m = as.matrix(ref_profiles)
     res <- t(epidish(beta.m, ref.m, method = "CBS")$estF)
+  }
+  else if (method == "CIBERSORT") {
+    source("scripts/CIBERSORT.R")
+    res = CIBERSORT(ref_profiles, dat) 
+    res = t(res[,colnames(ref_profiles)])
   }
   else if (method=="epidishCP") {
     res <- t(epidish(beta.m = dat, ref.m = as.matrix(ref_profiles), method = "CP")$estF)

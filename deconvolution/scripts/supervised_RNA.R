@@ -189,7 +189,7 @@ do_run_sup_deconvolution = function(method, dat, ref_profiles, threads=32) {
     res = apply(res, 2, function(x)
       x / sum(x)) #explicit STO constraint
   }
-  else if (method=="CIBERSORTepi") {
+  else if (method=="CIBERSORTepidish") {
     beta.m = dat
     ref.m = as.matrix(ref_profiles)
     res <- t(epidish(beta.m, ref.m, method = "CBS")$estF)

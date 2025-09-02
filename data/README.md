@@ -7,7 +7,7 @@ The table below recapitulates where to download *in vitro* and *in vivo* data.
 
 | **Dataset name** | **Source** | **Omic** | **Expression matrix**                                      | **Proportion matrix**                                           | **Reference profiles matrix**                              |
 |------------------|------------|----------|------------------------------------------------------------|-----------------------------------------------------------------|------------------------------------------------------------|
-| **BlMIX**        | In vitro   | DNAm     | GSE110554                                                   | Figure 4a (DOI: 10.1186/s12859-016-0943-7)                      | GSE35069                                                   |
+| **BlMIX**        | In vitro   | DNAm     | GSE110554                                                   | GSE110554                      | GSE110554                                                   |
 | **BrMIX**        | In vitro   | RNA      | GSE220605                                                  | "Cell count" column, table S1 (DOI: 10.1186/s13059-023-03016-6) | GSE220605                                                  |
 | **PaMIX**        | In vitro   | DNAm     | GSE281305                                                  | Zenodo (DOI: 10.5281/zenodo.14024478)                           | GSE281305                                                  |
 | **PaMIX**        | In vitro   | RNA      | GSE281204                                                  | Zenodo (DOI: 10.5281/zenodo.14024478)                           | GSE281204                                                  |
